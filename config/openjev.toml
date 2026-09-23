@@ -1,0 +1,76 @@
+# openjev configuration. Every value is required; nothing falls back to a default.
+
+# Model provider: any OpenAI-compatible chat completions endpoint.
+# LM Studio serves one at http://localhost:1234/v1 and ignores the API key.
+[provider]
+base_url = "http://localhost:1234/v1"
+api_key = "lm-studio"
+timeout_seconds = 300
+
+# The three models from openjev.com, under the names LM Studio gives them.
+# The prefill opens the assistant turn with an empty think block, which switches
+# step-by-step reasoning off for all three (their API reasoning switches have no effect).
+[[models]]
+key = "qwen3-0.6b"
+model_id = "qwen3-0.6b"
+display_name = "Qwen3 0.6B"
+assistant_prefill = "<think>\n\n</think>\n\n"
+
+[[models]]
+key = "minicpm5-2b"
+model_id = "minicpm5-2b"
+display_name = "MiniCPM5 2B"
+assistant_prefill = "<think>\n\n</think>\n\n"
+
+[[models]]
+key = "qwen3.5-4b"
+model_id = "qwen3.5-4b-mlx"
+display_name = "Qwen3.5 4B"
+assistant_prefill = "<think>\n\n</think>\n\n"
+
+# System One emulation: read option probabilities from next-token logprobs, no text generated.
+[readout]
+top_logprobs = 10 # LM Studio rejects values above 10
+temperature = 0.0
+
+# LLM-adapter emulation: the model writes its probabilities as JSON (jevals adapter protocol).
+[verbalized]
+temperature = 0.7
+top_p = 0.8
+max_tokens = 256
+malformed_retries = 2
+full_listing_max_options = 10 # above this, only the most likely options are requested
+top_listed_options = 5
+
+[benchmark]
+jevals_repository = "Jevals/jevals-data"
+jevals_commit = "21bb47b72814cf661539b313844d2d2e26166e54"
+release = "2026-09-18"
+suite = "0.1.0"
+tasks = ["pubmedqa", "helpsteer2", "banking77"]
+methods = ["readout", "verbalized"]
+epochs = 5
+reference_systems = ["jev", "gemini-3.8-flash", "glm-5.3", "deepseek-v4.1-flash", "qwen3.8-flash", "mistral-medium-3.5", "mercury-2.5"]
+input_dir = "data/input"
+output_dir = "data/output"
+report_dir = "reports/benchmark" # committed to git; data/ is not
+bootstrap_resamples = 2000
+bootstrap_seed = 20260918
+status_interval_seconds = 30 # how often the benchmark prints a status line with ETA
+
+# Where each task's item text comes from: the file inside the pinned Hugging Face dataset revision,
+# and the field whose value must match the jevals label (as an option index or an option name).
+[sources.pubmedqa]
+file = "pqa_labeled/train-00000-of-00001.parquet"
+label_field = "final_decision"
+label_is_index = false
+
+[sources.helpsteer2]
+file = "validation.jsonl.gz"
+label_field = "helpfulness"
+label_is_index = true
+
+[sources.banking77]
+file = "data/test-00000-of-00001.parquet"
+label_field = "label"
+label_is_index = true

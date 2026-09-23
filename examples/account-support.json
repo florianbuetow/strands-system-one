@@ -1,0 +1,13 @@
+{
+  "primitive": "choice",
+  "state": {
+    "message": "A customer says a password reset succeeded, but every login attempt still returns \"account locked\". Two unlock emails were requested and neither arrived."
+  },
+  "instructions": "What should support do next?",
+  "options": {
+    "resend_unlock_email": "Send another unlock email",
+    "manual_unlock": "Unlock the account manually after verifying identity",
+    "reset_password_again": "Ask the customer to reset the password again",
+    "escalate_security": "Escalate to the security team as a possible takeover"
+  }
+}
