@@ -54,6 +54,7 @@ help:
     @echo ""
     @printf "\033[0;33mRun:\033[0m\n"
     @printf "  %-40s %s\n" "run" "Answer the example question with every model and both methods"
+    @printf "  %-40s %s\n" "example" "Run the Jev-style example (examples/jev_style.py) on Qwen3.5 4B"
     @echo ""
     @printf "\033[0;33mBenchmark:\033[0m\n"
     @printf "  %-40s %s\n" "fetch" "Download the jevals suite and the item text, check every item's label"
@@ -132,6 +133,15 @@ run:
     @uv run src/main.py --config config/openjev.toml decide --question examples/account-support.json \
         || { printf "\033[31m✗ run failed\033[0m\n"; exit 1; }
     @printf "\033[32m✓ run completed successfully\033[0m\n"
+    @echo ""
+
+# Run the Jev-style example: three question types and confidence-gated routing on Qwen3.5 4B
+example:
+    @echo ""
+    @printf "\033[0;34m=== Running the Jev-style example ===\033[0m\n"
+    @uv run examples/jev_style.py --config config/openjev.toml --model qwen3.5-4b --method readout \
+        || { printf "\033[31m✗ example failed\033[0m\n"; exit 1; }
+    @printf "\033[32m✓ example completed successfully\033[0m\n"
     @echo ""
 
 # Download the pinned jevals suite and the item text from Hugging Face into data/input/ (not in git),

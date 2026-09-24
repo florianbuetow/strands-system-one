@@ -6,7 +6,8 @@
   "stubPath": "stubs",
   "include": [
     "src",
-    "tests"
+    "tests",
+    "examples"
   ],
   "exclude": [
     "**/__pycache__",

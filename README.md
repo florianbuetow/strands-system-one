@@ -9,7 +9,7 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
 ## Setup
 
 1. Install Python 3.12, [uv](https://docs.astral.sh/uv/getting-started/installation/), [just](https://github.com/casey/just#installation) and [LM Studio](https://lmstudio.ai/).
-2. In LM Studio, download and load the three models listed under [Models](#models), and start the local server on port 1234 (Developer tab, or `lms server start`). The endpoint and model names are set in `config/openjev.toml`.
+2. In LM Studio, download and load the three models listed under [Prerequisites](#prerequisites), and start the local server on port 1234 (Developer tab, or `lms server start`). The endpoint and model names are set in `config/openjev.toml`.
 3. Install the dependencies and the git hook:
 
    ```bash
@@ -28,6 +28,146 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
    just run
    ```
 
+## How to use it
+
+### Prerequisites
+
+1. LM Studio running its local server on port 1234 (Developer tab, or `lms server start`).
+2. These models downloaded and loaded in LM Studio. The keys are what you pass as `model`; the LM Studio names must match the `model_id` values in `config/openjev.toml`.
+
+   | Key | LM Studio model | Build |
+   |---|---|---|
+   | `qwen3-0.6b` | `qwen3-0.6b` | MLX 8-bit (mlx-community) |
+   | `minicpm5-2b` | `minicpm5-2b` | MLX 8-bit (mlx-community) |
+   | `qwen3.5-4b` | `qwen3.5-4b-mlx` | MLX 8-bit (lmstudio-community) |
+
+   You only need the models you call. To load one from the command line: `lms load qwen3.5-4b-mlx`.
+3. `just init` has been run, so `openjev` is installed in the project's environment. Run your scripts with `uv run`.
+
+The provider URL, model names and every setting are in `config/openjev.toml`. No value has a default; a missing or unknown key stops the program. To use another OpenAI-compatible server, change `[provider]` and add a `[[models]]` entry.
+
+### Calling it like Jev
+
+`LocalSystemOneClient` (`src/openjev/system_one.py`) has the same call and answer shapes as TypeSafe's Python SDK. With Jev you would write:
+
+```python
+from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
+
+with TypeSafeClient() as client:
+    response = client.system_one(model="jev-latest", state=..., questions={...})
+```
+
+With openjev you write:
+
+```python
+from pathlib import Path
+from openjev.system_one import Choice, LocalSystemOneClient, Noul, NoulCriteria, Score
+
+client = LocalSystemOneClient.from_config(Path("config/openjev.toml"), "readout")
+
+response = client.system_one(
+    model="qwen3.5-4b",
+    state={"document": "I was charged twice. Please fix this ASAP."},
+    questions={
+        "billing": Noul(instructions="Is this ticket about billing?", criteria=None),
+        "repeat": Noul(
+            instructions="Has the customer contacted support about this before?",
+            criteria=NoulCriteria(true="Mentions a prior attempt or ticket", false="No sign of previous contact"),
+        ),
+        "tone": Choice(
+            instructions="What is the customer's tone?",
+            criteria={"calm": None, "frustrated": None, "angry": None},
+        ),
+        "urgency": Score(
+            instructions="How urgent is this ticket?",
+            criteria=["can wait", "this week", "today"],
+        ),
+    },
+)
+
+response.nouls["billing"].noul  # P(yes), from 0 to 1
+response.choices["tone"].choice  # the most probable option, e.g. "frustrated"
+response.choices["tone"].probabilities  # {"calm": ..., "frustrated": ..., "angry": ...}
+response.choices["tone"].confidence  # from 0 (uniform) to 1 (all on one option)
+response.scores["urgency"].score  # expected level, from 0 to 2 here
+response.scores["urgency"].legend  # {"0": "can wait", "1": "this week", "2": "today"}
+```
+
+`state` is text or a JSON-serializable dict. The second argument of `from_config` picks the method: `"readout"` (probabilities from logprobs, no text) or `"verbalized"` (the model writes JSON). The three question types:
+
+| Question | Arguments | Answer fields |
+|---|---|---|
+| `Noul` | `instructions`, `criteria`: `NoulCriteria(true=..., false=...)` or `None` | `noul`: P(yes) |
+| `Choice` | `instructions`, `criteria`: option name → description or `None` | `choice`, `probabilities`, `confidence` |
+| `Score` | `instructions`, `criteria`: level descriptions, lowest first | `score` (expected level), `probabilities`, `confidence`, `legend` |
+
+Every answer is also in `response.answers[<id>]`, with `type` set to `"noul"`, `"choice"` or `"score"`.
+
+### Acting on confidence
+
+Jev is meant to be used with a gate: act when the answer is confident, confirm or hand off when it is not. The same pattern works here:
+
+```python
+response = client.system_one(
+    model="qwen3.5-4b",
+    state=user_message,
+    questions={
+        "action": Choice(
+            instructions="What is the user trying to do?",
+            criteria={
+                "check_balance": "View account balance",
+                "approve_transfer": "Approve the pending withdrawal request",
+                "support": "Get help with an issue",
+            },
+        ),
+    },
+)
+action = response.choices["action"]
+if action.confidence < 0.5:
+    route_to_human(user_message)
+elif action.choice == "approve_transfer" and action.confidence <= 0.9:
+    ask_user_to_confirm()
+else:
+    run(action.choice)
+```
+
+`examples/jev_style.py` runs both examples above against LM Studio:
+
+```bash
+just example
+```
+
+Test your thresholds on your own data: these models' confidence is not calibrated the way Jev's is, and it varies by model and method. Run `just report` for the calibration gap (ECE) of each model on the benchmark tasks.
+
+### Differences from calling Jev
+
+- `model` is a key from `config/openjev.toml`, not `"jev-latest"`.
+- `Noul` needs `criteria` passed explicitly; use `criteria=None` for none.
+- Questions are answered one after another, so a call with 10 questions takes about 10 times as long as a call with one. Jev answers them all in one parallel pass.
+- `confidence` is `(K × largest probability − 1) / (K − 1)` for K options or levels, the formula TypeSafe's documentation uses to explain it. Jev's exact computation is not published. Noul answers have no confidence, as in Jev.
+- There is no token usage, request id or async client.
+- With readout, `choice` handles up to 100 options, and an option the model doesn't rank in its top 10 at a digit gets probability 0. With verbalized, questions with more than 10 options only get probabilities for the 5 most likely.
+- If a model gives no valid answer, `system_one` raises `UnansweredQuestionError`.
+
+On PubMedQA so far, readout is faster and more accurate than verbalized for Qwen3 0.6B and MiniCPM5 2B, and Qwen3.5 4B with readout is the most accurate of the finished runs. See [Results](#results) once the benchmark is complete.
+
+### Lower-level API
+
+`LocalSystemOneClient` is built on `SystemOneAgent` (`src/openjev/agents.py`), which answers one question at a time:
+
+```python
+from pathlib import Path
+from openjev.agents import SystemOneAgent
+from openjev.config import load_config
+
+config = load_config(Path("config/openjev.toml"))
+agent = SystemOneAgent(config.provider, config.model("qwen3.5-4b"), "readout", config.readout, config.verbalized)
+
+p_yes = agent.noul(state, "Does this ticket need a human?", yes="A person must act", no="Self-service solves it")
+answer = agent.choice(state, "Which team owns this ticket?", {"billing": None, "security": "Possible account takeover"})
+level = agent.score(state, "How urgent is this ticket?", ["Not urgent", "Somewhat urgent", "Urgent", "Critical"])
+```
+
 ## Query modes
 
 A System One model reads a *state* (any text or JSON) and answers one typed question about it. Instead of writing text, it returns a probability for every allowed answer. There are three kinds of question, and `SystemOneAgent` supports all three:
@@ -44,24 +184,6 @@ A System One model reads a *state* (any text or JSON) and answers one typed ques
 
 **score** places the state on a rubric whose levels run from lowest to highest, such as 0 = "not helpful" up to 4 = "extremely helpful". The answer has a probability for every level. Because the levels are ordered, the benchmark counts an answer one level off as a smaller mistake than an answer four levels off.
 
-```python
-from pathlib import Path
-from openjev.agents import SystemOneAgent
-from openjev.config import load_config
-
-config = load_config(Path("config/openjev.toml"))
-agent = SystemOneAgent(config.provider, config.model("qwen3.5-4b"), "readout", config.readout, config.verbalized)
-state = '{"message": "Password reset worked, but every login still says account locked."}'
-
-p_yes = agent.noul(state, "Does this ticket need a human?", yes="A person must act", no="Self-service solves it")
-
-answer = agent.choice(state, "Which team owns this ticket?", {"billing": None, "security": "Possible account takeover", "other": None})
-answer.pick, answer.probabilities
-
-level = agent.score(state, "How urgent is this ticket?", ["Not urgent", "Somewhat urgent", "Urgent", "Critical"])
-level.pick, level.probabilities
-```
-
 ## How the agents answer
 
 `SystemOneAgent` (`src/openjev/agents.py`) is a Strands `Agent` running on one of two Strands model providers (`src/openjev/providers.py`). Both work with any chat model served by an OpenAI-compatible endpoint.
@@ -73,20 +195,11 @@ Both providers start the model's reply with an empty `<think></think>` block. Wi
 
 These are not real System One models. All three are ordinary text generators that produce one token at a time. Readout gives them a System One interface: a single read of the prompt, no generated text, and a probability per answer. Jev is built and trained to output typed probabilities directly, in one parallel pass, for up to 255 options.
 
-## Models
-
-| Key | LM Studio model | As on openjev.com |
-|---|---|---|
-| `qwen3-0.6b` | `qwen3-0.6b` (MLX 8-bit) | Qwen3 0.6B |
-| `minicpm5-2b` | `minicpm5-2b` (MLX 8-bit) | MiniCPM5 2B |
-| `qwen3.5-4b` | `qwen3.5-4b-mlx` (MLX 8-bit) | Qwen3.5 4B |
-
-The provider URL, model names and every run setting are in `config/openjev.toml`. No value has a default; a missing or unknown key stops the program.
-
 ## Usage
 
 ```bash
 just run         # answer examples/account-support.json with every model and both methods
+just example     # run examples/jev_style.py: the three question types and confidence-gated routing
 just benchmark   # run the full suite on every model, then print the results tables
 just report      # print the results tables and write reports/benchmark/report.md
 ```
