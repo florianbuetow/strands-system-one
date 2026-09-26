@@ -149,7 +149,7 @@ Test your thresholds on your own data: these models' confidence is not calibrate
 - With readout, `choice` handles up to 100 options, and an option the model doesn't rank in its top 10 at a digit gets probability 0. With verbalized, questions with more than 10 options only get probabilities for the 5 most likely.
 - If a model gives no valid answer, `system_one` raises `UnansweredQuestionError`.
 
-On PubMedQA so far, readout is faster and more accurate than verbalized for Qwen3 0.6B and MiniCPM5 2B, and Qwen3.5 4B with readout is the most accurate of the finished runs. See [Results](#results) once the benchmark is complete.
+Use Qwen3.5 4B with readout: it is the most accurate local option on all three benchmark tasks. See [Results](#results).
 
 ### Lower-level API
 
@@ -230,45 +230,54 @@ Differences from the published runs:
 
 ## Results
 
-> **Placeholder.** The full benchmark is still running. The local rows will be filled in from `reports/benchmark/report.md`, which `just report` writes, when it finishes.
+Full suite, 300 items × 5 repeats per task, run on 2026-09-23/24. Local models ran as MLX 8-bit builds in LM Studio on an Apple Silicon Mac, one request at a time (a few minutes of the run overlapped with other work on the machine); Jev's rows are its published runs, rescored with this project's code. The full report, including the six published LLMs, is in [`reports/benchmark/report.md`](reports/benchmark/report.md).
 
-Decision Score: 100 = perfect, 0 = no better than always answering with the label base rates, below 0 = worse than that. ECE is the calibration gap in points (lower is better). The Jev rows are its published runs, rescored with this project's code.
+Decision Score: 100 = perfect, 0 = no better than always answering with the label base rates, below 0 = worse than that. ECE is the calibration gap in points (lower is better).
+
+- **Qwen3.5 4B with readout is the best local option on all three tasks**, but it stays well below Jev: Decision Score 45.3 vs 69.0 on PubMedQA and 51.9 vs 67.8 on Banking77.
+- **Readout beats verbalized for Qwen3.5 4B on every task**, and it is two to four times as fast on PubMedQA and HelpSteer2.
+- **The two smaller models are no better than guessing the base rates** on PubMedQA and HelpSteer2, and mostly worse. Their probabilities are badly calibrated (ECE 22–66 points) and strongly biased, for example toward "yes" or toward one rubric level.
+- **HelpSteer2 is hard for everyone**: no model, Jev included, is clearly better than the base rates.
+- **Readout is slow on Banking77** (about 4.2 s per answer for Qwen3.5 4B): with 77 options each answer needs up to 9 label reads. On the 2- and 5-option tasks its median is 0.37–0.53 s, close to Jev's published 0.44–0.48 s (measured over the internet).
 
 ### PubMedQA (noul)
 
 | System | Method | Decision Score [95% CI] | Accuracy | ECE | Valid | p50 ms | p95 ms | Decisions/s |
 |---|---|---|---|---|---|---|---|---|
-| Jev | native | 69.0 [60.0, 76.6] | 91.3% | 5.0 | 100.0% | 438 | 653 | 2.02 |
-| Qwen3 0.6B | readout | — | — | — | — | — | — | — |
-| Qwen3 0.6B | verbalized | — | — | — | — | — | — | — |
-| MiniCPM5 2B | readout | — | — | — | — | — | — | — |
-| MiniCPM5 2B | verbalized | — | — | — | — | — | — | — |
-| Qwen3.5 4B | readout | — | — | — | — | — | — | — |
-| Qwen3.5 4B | verbalized | — | — | — | — | — | — | — |
+| Jev | native | 69.0 [60.5, 76.7] | 91.3% | 5.0 | 100.0% | 438 | 653 | 2.02 |
+| Qwen3 0.6B | readout | -28.8 [-40.0, -16.2] | 62.3% | 30.4 | 100.0% | 415 | 585 | 2.35 |
+| Qwen3 0.6B | verbalized | -29.9 [-45.4, -15.8] | 56.9% | 28.1 | 100.0% | 833 | 1169 | 1.20 |
+| MiniCPM5 2B | readout | -3.0 [-14.0, 9.2] | 66.0% | 22.6 | 100.0% | 480 | 788 | 1.92 |
+| MiniCPM5 2B | verbalized | -66.6 [-93.7, -43.0] | 50.5% | 40.5 | 100.0% | 1048 | 1486 | 0.92 |
+| Qwen3.5 4B | readout | 45.3 [35.9, 54.6] | 82.1% | 4.9 | 100.0% | 526 | 1043 | 1.80 |
+| Qwen3.5 4B | verbalized | 19.0 [4.3, 33.8] | 68.1% | 17.0 | 100.0% | 1011 | 1755 | 0.92 |
+| Label prior | base rates | 0.0 [0.0, 0.0] | 62.0% | — | 100.0% | — | — | — |
 
 ### HelpSteer2 (score)
 
 | System | Method | Decision Score [95% CI] | Accuracy | ECE | Valid | p50 ms | p95 ms | Decisions/s |
 |---|---|---|---|---|---|---|---|---|
-| Jev | native | 9.2 [-5.4, 21.5] | 41.3% | 19.7 | 100.0% | 478 | 670 | 1.99 |
-| Qwen3 0.6B | readout | — | — | — | — | — | — | — |
-| Qwen3 0.6B | verbalized | — | — | — | — | — | — | — |
-| MiniCPM5 2B | readout | — | — | — | — | — | — | — |
-| MiniCPM5 2B | verbalized | — | — | — | — | — | — | — |
-| Qwen3.5 4B | readout | — | — | — | — | — | — | — |
-| Qwen3.5 4B | verbalized | — | — | — | — | — | — | — |
+| Jev | native | 9.2 [-4.5, 21.4] | 41.3% | 19.7 | 100.0% | 478 | 670 | 1.99 |
+| Qwen3 0.6B | readout | -40.5 [-46.1, -35.0] | 30.0% | 66.2 | 100.0% | 404 | 635 | 2.54 |
+| Qwen3 0.6B | verbalized | -60.8 [-77.0, -47.1] | 16.2% | 28.8 | 99.3% | 1084 | 1673 | 0.92 |
+| MiniCPM5 2B | readout | -60.7 [-71.7, -49.2] | 41.3% | 55.0 | 100.0% | 414 | 887 | 2.11 |
+| MiniCPM5 2B | verbalized | -39.3 [-44.6, -33.9] | 31.0% | 53.1 | 98.9% | 932 | 1820 | 0.94 |
+| Qwen3.5 4B | readout | -11.4 [-25.1, 1.6] | 44.1% | 29.3 | 100.0% | 370 | 1282 | 2.13 |
+| Qwen3.5 4B | verbalized | -37.4 [-57.7, -19.0] | 33.5% | 30.5 | 99.9% | 1491 | 2852 | 0.62 |
+| Label prior | base rates | 0.0 [0.0, 0.0] | 41.7% | — | 100.0% | — | — | — |
 
 ### Banking77 (choice)
 
 | System | Method | Decision Score [95% CI] | Accuracy | ECE | Valid | p50 ms | p95 ms | Decisions/s |
 |---|---|---|---|---|---|---|---|---|
-| Jev | native | 67.8 [61.0, 74.0] | 79.7% | 9.8 | 100.0% | 467 | 693 | 1.96 |
-| Qwen3 0.6B | readout | — | — | — | — | — | — | — |
-| Qwen3 0.6B | verbalized | — | — | — | — | — | — | — |
-| MiniCPM5 2B | readout | — | — | — | — | — | — | — |
-| MiniCPM5 2B | verbalized | — | — | — | — | — | — | — |
-| Qwen3.5 4B | readout | — | — | — | — | — | — | — |
-| Qwen3.5 4B | verbalized | — | — | — | — | — | — | — |
+| Jev | native | 67.8 [61.0, 74.4] | 79.7% | 9.8 | 100.0% | 467 | 693 | 1.96 |
+| Qwen3 0.6B | readout | -33.6 [-36.4, -30.7] | 9.2% | 54.7 | 100.0% | 1418 | 1894 | 0.74 |
+| Qwen3 0.6B | verbalized | -2.8 [-5.5, -0.2] | 16.7% | 20.1 | 57.5% | 971 | 2848 | 0.55 |
+| MiniCPM5 2B | readout | 23.5 [16.5, 31.1] | 51.5% | 28.6 | 100.0% | 586 | 814 | 1.80 |
+| MiniCPM5 2B | verbalized | 26.9 [21.6, 32.5] | 46.9% | 12.1 | 98.0% | 1536 | 2272 | 0.64 |
+| Qwen3.5 4B | readout | 51.9 [44.9, 59.0] | 69.9% | 16.7 | 100.0% | 4185 | 4605 | 0.24 |
+| Qwen3.5 4B | verbalized | 44.9 [40.3, 49.7] | 67.5% | 15.3 | 99.3% | 1924 | 2532 | 0.53 |
+| Label prior | base rates | 0.0 [0.0, 0.0] | 1.3% | — | 100.0% | — | — | — |
 
 ## Data in this repository
 
