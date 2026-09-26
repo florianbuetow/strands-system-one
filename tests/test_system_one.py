@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from strands.models.openai import OpenAIModel
 
-from openjev.agents import UnansweredQuestionError
-from openjev.system_one import (
+from llm_system_one.agents import UnansweredQuestionError
+from llm_system_one.system_one import (
     Choice,
     ChoiceAnswer,
     LocalSystemOneClient,
@@ -19,7 +19,7 @@ from openjev.system_one import (
 )
 from tests.fakes import FakeClient, fake_get_client
 
-CONFIG = Path(__file__).resolve().parent.parent / "config" / "openjev.toml"
+CONFIG = Path(__file__).resolve().parent.parent / "config" / "llm-system-one.toml"
 
 
 def install(monkeypatch: pytest.MonkeyPatch, client: FakeClient) -> None:

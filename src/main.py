@@ -1,4 +1,4 @@
-"""openjev: Strands System One agents on local models, benchmarked against Jev on the jevals suite."""
+"""llm-system-one: Strands System One agents on local models, benchmarked against Jev on the jevals suite."""
 
 from __future__ import annotations
 
@@ -11,13 +11,13 @@ from typing import Any, cast
 from rich.console import Console
 from rich.table import Table
 
-from openjev.agents import SystemOneAgent
-from openjev.benchmark import run_benchmark
-from openjev.config import Config, Method, ModelConfig, load_config
-from openjev.jevals import download_jevals, load_task
-from openjev.questions import Option, Question
-from openjev.report import render, score_task, write_markdown
-from openjev.sources import prepare_items
+from llm_system_one.agents import SystemOneAgent
+from llm_system_one.benchmark import run_benchmark
+from llm_system_one.config import Config, Method, ModelConfig, load_config
+from llm_system_one.jevals import download_jevals, load_task
+from llm_system_one.questions import Option, Question
+from llm_system_one.report import render, score_task, write_markdown
+from llm_system_one.sources import prepare_items
 
 
 def _models(config: Config, keys: list[str] | None) -> list[ModelConfig]:

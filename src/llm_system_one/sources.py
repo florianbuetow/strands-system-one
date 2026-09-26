@@ -12,8 +12,8 @@ from typing import Any
 import httpx
 import polars as pl
 
-from openjev.config import SourceConfig
-from openjev.jevals import SuiteItem, Task
+from llm_system_one.config import SourceConfig
+from llm_system_one.jevals import SuiteItem, Task
 
 
 @dataclass(frozen=True)

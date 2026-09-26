@@ -78,7 +78,7 @@ class SourceConfig(_Strict):
 
 
 class Config(_Strict):
-    """Complete openjev configuration."""
+    """Complete llm-system-one configuration."""
 
     provider: ProviderConfig
     models: list[ModelConfig]

@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from openjev.jevals import Task
-from openjev.ordering import mulberry32
-from openjev.probabilities import Listing, ListingMode, normalize, pick
+from llm_system_one.jevals import Task
+from llm_system_one.ordering import mulberry32
+from llm_system_one.probabilities import Listing, ListingMode, normalize, pick
 
 
 @dataclass(frozen=True)

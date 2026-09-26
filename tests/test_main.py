@@ -11,7 +11,7 @@ def test_requires_config_and_command() -> None:
     with pytest.raises(SystemExit):
         main([])
     with pytest.raises(SystemExit):
-        main(["--config", "config/openjev.toml"])
+        main(["--config", "config/llm-system-one.toml"])
 
 
 def test_missing_config_file_fails(tmp_path: Path) -> None:

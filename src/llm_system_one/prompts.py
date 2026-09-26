@@ -7,7 +7,7 @@ placeholders, so those two lines are written here and the prompt hash will diffe
 
 from __future__ import annotations
 
-from openjev.questions import Option, Primitive, Question
+from llm_system_one.questions import Option, Primitive, Question
 
 ADAPTER_TEMPLATE = """You are answering one typed decision question about a state.
 

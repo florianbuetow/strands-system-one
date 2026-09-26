@@ -20,11 +20,11 @@ from strands import Agent
 from strands.models.model import Model
 from strands.types.exceptions import MaxTokensReachedException
 
-from openjev.config import Method, ModelConfig, ProviderConfig, ReadoutConfig, VerbalizedConfig
-from openjev.probabilities import Listing, ListingMode, MalformedReplyError, normalize, parse_reply, pick
-from openjev.prompts import adapter_prompt, readout_labels, readout_prompt
-from openjev.providers import LogprobReadoutModel, PrefilledOpenAIModel
-from openjev.questions import Option, Question
+from llm_system_one.config import Method, ModelConfig, ProviderConfig, ReadoutConfig, VerbalizedConfig
+from llm_system_one.probabilities import Listing, ListingMode, MalformedReplyError, normalize, parse_reply, pick
+from llm_system_one.prompts import adapter_prompt, readout_labels, readout_prompt
+from llm_system_one.providers import LogprobReadoutModel, PrefilledOpenAIModel
+from llm_system_one.questions import Option, Question
 
 
 class UnansweredQuestionError(RuntimeError):

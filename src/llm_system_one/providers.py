@@ -20,7 +20,7 @@ from strands.models.openai import OpenAIModel
 from strands.types.content import Messages
 from strands.types.streaming import StreamEvent
 
-from openjev.readout import TokenLogprob, read_label_masses
+from llm_system_one.readout import TokenLogprob, read_label_masses
 
 
 class PrefilledOpenAIModel(OpenAIModel):

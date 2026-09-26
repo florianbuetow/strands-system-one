@@ -21,13 +21,13 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-from openjev.agents import Decision, SystemOneAgent
-from openjev.config import Config, Method, ModelConfig
-from openjev.jevals import Task, load_task
-from openjev.ordering import option_order, order_seed
-from openjev.probabilities import Listing, normalize, pick
-from openjev.questions import Question
-from openjev.sources import PreparedItem, prepare_items
+from llm_system_one.agents import Decision, SystemOneAgent
+from llm_system_one.config import Config, Method, ModelConfig
+from llm_system_one.jevals import Task, load_task
+from llm_system_one.ordering import option_order, order_seed
+from llm_system_one.probabilities import Listing, normalize, pick
+from llm_system_one.questions import Question
+from llm_system_one.sources import PreparedItem, prepare_items
 
 
 def run_path(config: Config, model: ModelConfig, method: Method, task_id: str) -> Path:

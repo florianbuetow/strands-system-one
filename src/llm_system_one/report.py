@@ -8,10 +8,10 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 
-from openjev.benchmark import run_path
-from openjev.config import Config
-from openjev.jevals import Task, load_board, load_task, reference_run_path
-from openjev.scoring import Metrics, Run, check_against_board, metrics, prior_run, read_run, resamples
+from llm_system_one.benchmark import run_path
+from llm_system_one.config import Config
+from llm_system_one.jevals import Task, load_board, load_task, reference_run_path
+from llm_system_one.scoring import Metrics, Run, check_against_board, metrics, prior_run, read_run, resamples
 
 
 @dataclass(frozen=True)
@@ -111,7 +111,7 @@ def render(results: list[TaskResults], console: Console) -> None:
 def write_markdown(config: Config, results: list[TaskResults], path: Path) -> None:
     """Write the tables and notes as Markdown."""
     lines = [
-        "# openjev benchmark: local System One agents vs Jev",
+        "# llm-system-one benchmark: local System One agents vs Jev",
         "",
         f"Benchmark data: Jevals (jevals.com), release {config.benchmark.release}, suite {config.benchmark.suite}. CC-BY-4.0. "
         "Item text: Banking77 (CC BY 4.0, PolyAI), HelpSteer2 (CC BY 4.0, NVIDIA), PubMedQA (MIT).",
@@ -131,7 +131,8 @@ def write_markdown(config: Config, results: list[TaskResults], path: Path) -> No
         "",
         "## How we scored and checked the results",
         "",
-        "`read_run` and `metrics` in `src/openjev/scoring.py` score both the published logs and our local runs using the Jevals formulas. "
+        "`read_run` and `metrics` in `src/llm_system_one/scoring.py` score both the published logs "
+        "and our local runs using the Jevals formulas. "
         "`check_against_board` checks the recomputed reference Decision Score, accuracy, loss, ECE, repeat/order flip rates, "
         "and p50/p95 latency against the published board. Report generation stops if a checked value differs beyond rounding tolerance. "
         "All reference rows included below passed these checks. This verifies our rescoring of the published logs; "

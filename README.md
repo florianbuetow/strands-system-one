@@ -1,15 +1,15 @@
-# openjev
+# llm-system-one
 
 ## About
 
-openjev is an alternative System One implementation built from small open-weights LLMs, benchmarked against Jev. Use it as a local stand-in for Jev to experiment with Jev's typed prediction format on open-weights models.
+llm-system-one is an alternative System One implementation built from small open-weights LLMs, benchmarked against Jev. Use it as a local stand-in for Jev to experiment with Jev's typed prediction format on open-weights models.
 
 Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B, answer like Jev, TypeSafe's System One model: typed yes/no, choice and score answers, each with a probability for every allowed answer. The probabilities come either from a logprob readout, where the model writes no text, or from JSON the model writes out. Both methods are benchmarked against Jev on the public jevals suite.
 
 ## Setup
 
 1. Install Python 3.12, [uv](https://docs.astral.sh/uv/getting-started/installation/), [just](https://github.com/casey/just#installation) and [LM Studio](https://lmstudio.ai/).
-2. In LM Studio, download and load the three models listed under [Prerequisites](#prerequisites), and start the local server on port 1234 (Developer tab, or `lms server start`). The endpoint and model names are set in `config/openjev.toml`.
+2. In LM Studio, download and load the three models listed under [Prerequisites](#prerequisites), and start the local server on port 1234 (Developer tab, or `lms server start`). The endpoint and model names are set in `config/llm-system-one.toml`.
 3. Install the dependencies and the git hook:
 
    ```bash
@@ -33,7 +33,7 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
 ### Prerequisites
 
 1. LM Studio running its local server on port 1234 (Developer tab, or `lms server start`).
-2. These models downloaded and loaded in LM Studio. The keys are what you pass as `model`; the LM Studio names must match the `model_id` values in `config/openjev.toml`.
+2. These models downloaded and loaded in LM Studio. The keys are what you pass as `model`; the LM Studio names must match the `model_id` values in `config/llm-system-one.toml`.
 
    | Key | LM Studio model | Build |
    |---|---|---|
@@ -42,13 +42,13 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
    | `qwen3.5-4b` | `qwen3.5-4b-mlx` | MLX 8-bit (lmstudio-community) |
 
    You only need the models you call. To load one from the command line: `lms load qwen3.5-4b-mlx`.
-3. `just init` has been run, so `openjev` is installed in the project's environment. Run your scripts with `uv run`.
+3. `just init` has been run, so `llm-system-one` is installed in the project's environment. Run your scripts with `uv run`.
 
-The provider URL, model names and every setting are in `config/openjev.toml`. No value has a default; a missing or unknown key stops the program. To use another OpenAI-compatible server, change `[provider]` and add a `[[models]]` entry.
+The provider URL, model names and every setting are in `config/llm-system-one.toml`. No value has a default; a missing or unknown key stops the program. To use another OpenAI-compatible server, change `[provider]` and add a `[[models]]` entry.
 
 ### Calling it like Jev
 
-`LocalSystemOneClient` (`src/openjev/system_one.py`) has the same call and answer shapes as TypeSafe's Python SDK. With Jev you would write:
+`LocalSystemOneClient` (`src/llm_system_one/system_one.py`) has the same call and answer shapes as TypeSafe's Python SDK. With Jev you would write:
 
 ```python
 from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
@@ -57,13 +57,13 @@ with TypeSafeClient() as client:
     response = client.system_one(model="jev-latest", state=..., questions={...})
 ```
 
-With openjev you write:
+With llm-system-one you write:
 
 ```python
 from pathlib import Path
-from openjev.system_one import Choice, LocalSystemOneClient, Noul, NoulCriteria, Score
+from llm_system_one.system_one import Choice, LocalSystemOneClient, Noul, NoulCriteria, Score
 
-client = LocalSystemOneClient.from_config(Path("config/openjev.toml"), "readout")
+client = LocalSystemOneClient.from_config(Path("config/llm-system-one.toml"), "readout")
 
 response = client.system_one(
     model="qwen3.5-4b",
@@ -141,7 +141,7 @@ Test your thresholds on your own data: these models' confidence is not calibrate
 
 ### Differences from calling Jev
 
-- `model` is a key from `config/openjev.toml`, not `"jev-latest"`.
+- `model` is a key from `config/llm-system-one.toml`, not `"jev-latest"`.
 - `Noul` needs `criteria` passed explicitly; use `criteria=None` for none.
 - Questions are answered one after another, so a call with 10 questions takes about 10 times as long as a call with one. Jev answers them all in one parallel pass.
 - `confidence` is `(K × largest probability − 1) / (K − 1)` for K options or levels, the formula TypeSafe's documentation uses to explain it. Jev's exact computation is not published. Noul answers have no confidence, as in Jev.
@@ -153,14 +153,14 @@ Use Qwen3.5 4B with readout: it is the most accurate local option on all three b
 
 ### Lower-level API
 
-`LocalSystemOneClient` is built on `SystemOneAgent` (`src/openjev/agents.py`), which answers one question at a time:
+`LocalSystemOneClient` is built on `SystemOneAgent` (`src/llm_system_one/agents.py`), which answers one question at a time:
 
 ```python
 from pathlib import Path
-from openjev.agents import SystemOneAgent
-from openjev.config import load_config
+from llm_system_one.agents import SystemOneAgent
+from llm_system_one.config import load_config
 
-config = load_config(Path("config/openjev.toml"))
+config = load_config(Path("config/llm-system-one.toml"))
 agent = SystemOneAgent(config.provider, config.model("qwen3.5-4b"), "readout", config.readout, config.verbalized)
 
 p_yes = agent.noul(state, "Does this ticket need a human?", yes="A person must act", no="Self-service solves it")
@@ -186,7 +186,7 @@ A System One model reads a *state* (any text or JSON) and answers one typed ques
 
 ## How the agents answer
 
-`SystemOneAgent` (`src/openjev/agents.py`) is a Strands `Agent` running on one of two Strands model providers (`src/openjev/providers.py`). Both work with any chat model served by an OpenAI-compatible endpoint.
+`SystemOneAgent` (`src/llm_system_one/agents.py`) is a Strands `Agent` running on one of two Strands model providers (`src/llm_system_one/providers.py`). Both work with any chat model served by an OpenAI-compatible endpoint.
 
 - **readout** (`LogprobReadoutModel`): the model writes no text. The options are numbered in the prompt, and the provider reads the probability of each number from the model's next-token probabilities. Two-digit numbers are read one digit at a time: `P("07") = P("0") · P("7" | "0")`. The website openjev.com calls this "direct readout".
 - **verbalized** (`PrefilledOpenAIModel`): the model writes its probabilities as JSON, with the same prompt and validity rules jevals uses for LLMs. Invalid replies are retried twice.
@@ -297,7 +297,7 @@ The PubMedQA contexts are PubMed abstracts, whose copyright normally stays with 
 
 ## Licence and attribution
 
-Benchmark data: Jevals (jevals.com), release 2026-09-18, suite 0.1.0. CC-BY-4.0. The source datasets keep their own licences. openjev is an independent project and is not affiliated with TypeSafe or jevals.
+Benchmark data: Jevals (jevals.com), release 2026-09-18, suite 0.1.0. CC-BY-4.0. The source datasets keep their own licences. llm-system-one is an independent project and is not affiliated with TypeSafe or jevals.
 
 ## Development
 

@@ -6,9 +6,9 @@ from typing import Any
 
 import pytest
 
-from openjev.jevals import SuiteItem, Task
-from openjev.questions import Option
-from openjev.scoring import check_against_board, loss, metrics, prior_run, prior_vector, read_run, resamples
+from llm_system_one.jevals import SuiteItem, Task
+from llm_system_one.questions import Option
+from llm_system_one.scoring import check_against_board, loss, metrics, prior_run, prior_vector, read_run, resamples
 
 Answers = dict[tuple[str, int], dict[str, Any] | None]
 

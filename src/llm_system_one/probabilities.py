@@ -10,7 +10,7 @@ import math
 from dataclasses import dataclass
 from typing import Literal, cast
 
-from openjev.questions import Primitive
+from llm_system_one.questions import Primitive
 
 ListingMode = Literal["full", "top"]
 

@@ -1,4 +1,4 @@
-# Development Rules for openjev
+# Development Rules for llm-system-one
 
 This file provides guidance to AI agents and AI-assisted development tools when working with this project. This includes Claude Code, Cursor IDE, GitHub Copilot, Windsurf, and any other AI coding assistants.
 

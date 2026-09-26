@@ -16,9 +16,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from openjev.agents import SystemOneAgent
-from openjev.config import Config, Method, load_config
-from openjev.questions import Option, Question
+from llm_system_one.agents import SystemOneAgent
+from llm_system_one.config import Config, Method, load_config
+from llm_system_one.questions import Option, Question
 
 
 @dataclass(frozen=True)
@@ -156,7 +156,7 @@ class LocalSystemOneClient:
         """Create a client.
 
         Args:
-            config: The openjev configuration (provider and models).
+            config: The llm-system-one configuration (provider and models).
             method: "readout" (probabilities from logprobs, no text) or "verbalized" (the model writes JSON).
         """
         self._config = config

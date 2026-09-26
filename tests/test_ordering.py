@@ -2,7 +2,7 @@
 
 import pytest
 
-from openjev.ordering import fnv1a, mulberry32, option_order, order_seed
+from llm_system_one.ordering import fnv1a, mulberry32, option_order, order_seed
 
 BANKING77_OPTIONS = [
     "activate_my_card", "age_limit", "apple_pay_or_google_pay", "atm_support", "automatic_top_up",

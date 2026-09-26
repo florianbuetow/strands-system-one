@@ -2,7 +2,7 @@
 
 import pytest
 
-from openjev.probabilities import Listing, ListingMode, MalformedReplyError, normalize, parse_reply, pick
+from llm_system_one.probabilities import Listing, ListingMode, MalformedReplyError, normalize, parse_reply, pick
 
 NAMES = ["a", "b", "c", "d"]
 

@@ -5,14 +5,14 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from openjev.benchmark import build_question
-from openjev.config import Config, load_config
-from openjev.jevals import SuiteItem, Task
-from openjev.prompts import adapter_prompt, readout_labels, readout_prompt
-from openjev.questions import Option, Primitive, Question
-from openjev.sources import PreparedItem
+from llm_system_one.benchmark import build_question
+from llm_system_one.config import Config, load_config
+from llm_system_one.jevals import SuiteItem, Task
+from llm_system_one.prompts import adapter_prompt, readout_labels, readout_prompt
+from llm_system_one.questions import Option, Primitive, Question
+from llm_system_one.sources import PreparedItem
 
-CONFIG = Path(__file__).resolve().parent.parent / "config" / "openjev.toml"
+CONFIG = Path(__file__).resolve().parent.parent / "config" / "llm-system-one.toml"
 
 
 def question() -> Question:

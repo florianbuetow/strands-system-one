@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from openjev.readout import NextTokens, TokenLogprob, read_label_masses
+from llm_system_one.readout import NextTokens, TokenLogprob, read_label_masses
 
 
 def fake_next_tokens(table: dict[str, list[tuple[str, float]]]) -> tuple[NextTokens, list[str]]:

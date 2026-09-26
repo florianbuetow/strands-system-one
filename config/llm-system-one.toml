@@ -1,4 +1,4 @@
-# openjev configuration. Every value is required; nothing falls back to a default.
+# llm-system-one configuration. Every value is required; nothing falls back to a default.
 
 # Model provider: any OpenAI-compatible chat completions endpoint.
 # LM Studio serves one at http://localhost:1234/v1 and ignores the API key.

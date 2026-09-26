@@ -44,7 +44,7 @@ _default:
 help:
     @clear
     @echo ""
-    @printf "\033[0;34m=== openjev ===\033[0m\n"
+    @printf "\033[0;34m=== llm-system-one ===\033[0m\n"
     @echo ""
     @printf "\033[0;33mSetup & Lifecycle:\033[0m\n"
     @printf "  %-40s %s\n" "init" "Initialize the development environment"
@@ -130,7 +130,7 @@ destroy:
 run:
     @echo ""
     @printf "\033[0;34m=== Answering the example question ===\033[0m\n"
-    @uv run src/main.py --config config/openjev.toml decide --question examples/account-support.json \
+    @uv run src/main.py --config config/llm-system-one.toml decide --question examples/account-support.json \
         || { printf "\033[31m✗ run failed\033[0m\n"; exit 1; }
     @printf "\033[32m✓ run completed successfully\033[0m\n"
     @echo ""
@@ -139,7 +139,7 @@ run:
 example:
     @echo ""
     @printf "\033[0;34m=== Running the Jev-style example ===\033[0m\n"
-    @uv run examples/jev_style.py --config config/openjev.toml --model qwen3.5-4b --method readout \
+    @uv run examples/jev_style.py --config config/llm-system-one.toml --model qwen3.5-4b --method readout \
         || { printf "\033[31m✗ example failed\033[0m\n"; exit 1; }
     @printf "\033[32m✓ example completed successfully\033[0m\n"
     @echo ""
@@ -149,7 +149,7 @@ example:
 fetch:
     @echo ""
     @printf "\033[0;34m=== Fetching the jevals suite ===\033[0m\n"
-    @uv run src/main.py --config config/openjev.toml fetch \
+    @uv run src/main.py --config config/llm-system-one.toml fetch \
         || { printf "\033[31m✗ fetch failed\033[0m\n"; exit 1; }
     @printf "\033[32m✓ fetch completed successfully\033[0m\n"
     @echo ""
@@ -158,9 +158,9 @@ fetch:
 benchmark: fetch
     @echo ""
     @printf "\033[0;34m=== Running the benchmark ===\033[0m\n"
-    @uv run src/main.py --config config/openjev.toml benchmark \
+    @uv run src/main.py --config config/llm-system-one.toml benchmark \
         || { printf "\033[31m✗ benchmark failed\033[0m\n"; exit 1; }
-    @uv run src/main.py --config config/openjev.toml report \
+    @uv run src/main.py --config config/llm-system-one.toml report \
         || { printf "\033[31m✗ report failed\033[0m\n"; exit 1; }
     @printf "\033[32m✓ benchmark completed successfully\033[0m\n"
     @echo ""
@@ -169,7 +169,7 @@ benchmark: fetch
 report:
     @echo ""
     @printf "\033[0;34m=== Benchmark results ===\033[0m\n"
-    @uv run src/main.py --config config/openjev.toml report \
+    @uv run src/main.py --config config/llm-system-one.toml report \
         || { printf "\033[31m✗ report failed\033[0m\n"; exit 1; }
     @printf "\033[32m✓ report completed successfully\033[0m\n"
     @echo ""

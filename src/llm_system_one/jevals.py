@@ -12,8 +12,8 @@ from typing import Any, cast
 
 import httpx
 
-from openjev.config import BenchmarkConfig
-from openjev.questions import Option, Primitive
+from llm_system_one.config import BenchmarkConfig
+from llm_system_one.questions import Option, Primitive
 
 
 @dataclass(frozen=True)

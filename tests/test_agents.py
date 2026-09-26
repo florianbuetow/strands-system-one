@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 from strands.models.openai import OpenAIModel
 
-from openjev.agents import SystemOneAgent, UnansweredQuestionError
-from openjev.config import Config, Method, load_config
-from openjev.questions import Option, Question
+from llm_system_one.agents import SystemOneAgent, UnansweredQuestionError
+from llm_system_one.config import Config, Method, load_config
+from llm_system_one.questions import Option, Question
 from tests.fakes import FakeClient, fake_get_client
 
-CONFIG = Path(__file__).resolve().parent.parent / "config" / "openjev.toml"
+CONFIG = Path(__file__).resolve().parent.parent / "config" / "llm-system-one.toml"
 
 
 @pytest.fixture

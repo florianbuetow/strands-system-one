@@ -1,4 +1,4 @@
-"""Architecture import rule tests for openjev.
+"""Architecture import rule tests for llm-system-one.
 
 Add architectural boundary rules here as the project grows.
 Each test enforces one invariant about the import graph.
@@ -12,7 +12,7 @@ Example rules to add as your project develops layers:
         (
             Rule()
             .modules_that()
-            .are_sub_modules_of("openjev.services")
+            .are_sub_modules_of("llm_system_one.services")
             .should_not()
             .import_modules_that()
             .have_name_matching(r"fastapi.*")
@@ -24,10 +24,10 @@ Example rules to add as your project develops layers:
         (
             Rule()
             .modules_that()
-            .are_named("openjev.config")
+            .are_named("llm_system_one.config")
             .should_not()
             .import_modules_that()
-            .are_sub_modules_of("openjev.services")
+            .are_sub_modules_of("llm_system_one.services")
             .assert_applies(evaluable)
         )
 """
@@ -55,10 +55,10 @@ def test_evaluable_is_configured(evaluable: EvaluableArchitecture) -> None:
         (
             Rule()
             .modules_that()
-            .are_named("openjev.app")
+            .are_named("llm_system_one.app")
             .should()
             .import_modules_that()
-            .are_named("openjev.config")
+            .are_named("llm_system_one.config")
             .assert_applies(evaluable)
         )
     """

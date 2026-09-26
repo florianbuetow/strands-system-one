@@ -1,6 +1,6 @@
 """Call local models the way you would call Jev with the TypeSafe Python SDK.
 
-Run with: uv run examples/jev_style.py --config config/openjev.toml --model qwen3.5-4b --method readout
+Run with: uv run examples/jev_style.py --config config/llm-system-one.toml --model qwen3.5-4b --method readout
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from openjev.system_one import Choice, LocalSystemOneClient, Noul, NoulCriteria, Score
+from llm_system_one.system_one import Choice, LocalSystemOneClient, Noul, NoulCriteria, Score
 
 
 def triage(client: LocalSystemOneClient, model: str, ticket: str) -> None:

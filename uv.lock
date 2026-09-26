@@ -11,14 +11,14 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P7D"
 
 [options.exclude-newer-package]
-pip = "2026-08-05T00:00:00Z"
-gitpython = "2026-08-26T00:00:00Z"
-python-multipart = "2026-06-21T00:00:00Z"
-pydantic-settings = "2026-06-21T00:00:00Z"
-msgpack = "2026-06-21T00:00:00Z"
-starlette = "2026-06-21T00:00:00Z"
 cryptography = "2026-08-01T00:00:00Z"
+gitpython = "2026-08-26T00:00:00Z"
+msgpack = "2026-06-21T00:00:00Z"
+pip = "2026-08-05T00:00:00Z"
+pydantic-settings = "2026-06-21T00:00:00Z"
+python-multipart = "2026-06-21T00:00:00Z"
 semgrep = "2026-06-21T00:00:00Z"
+starlette = "2026-06-21T00:00:00Z"
 
 [manifest]
 constraints = [
@@ -1146,6 +1146,66 @@ wheels = [
 ]
 
 [[package]]
+name = "llm-system-one"
+version = "0.0.1"
+source = { editable = "." }
+dependencies = [
+    { name = "httpx" },
+    { name = "openai" },
+    { name = "polars" },
+    { name = "pydantic" },
+    { name = "rich" },
+    { name = "strands-agents", extra = ["openai"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "bandit" },
+    { name = "codespell" },
+    { name = "deptry" },
+    { name = "mypy" },
+    { name = "pip-audit" },
+    { name = "pre-commit" },
+    { name = "pygount" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "pytest-randomly" },
+    { name = "pytest-timeout" },
+    { name = "pytestarch" },
+    { name = "ruff" },
+    { name = "semgrep" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bandit", extras = ["toml"], marker = "extra == 'dev'", specifier = ">=1.7.8" },
+    { name = "codespell", marker = "extra == 'dev'", specifier = ">=2.3.0" },
+    { name = "deptry", marker = "extra == 'dev'", specifier = ">=0.20.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11.0" },
+    { name = "openai", specifier = ">=2.54.0" },
+    { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.7.0" },
+    { name = "polars", specifier = ">=1.44.2" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.6.0" },
+    { name = "pydantic", specifier = ">=2.13.5" },
+    { name = "pygount", marker = "extra == 'dev'", specifier = ">=1.6.4" },
+    { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
+    { name = "pytest-randomly", marker = "extra == 'dev'", specifier = ">=3.15.0" },
+    { name = "pytest-timeout", marker = "extra == 'dev'", specifier = ">=2.2.0" },
+    { name = "pytestarch", marker = "extra == 'dev'", specifier = ">=4.0.0" },
+    { name = "rich", specifier = ">=15.0.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
+    { name = "semgrep", marker = "extra == 'dev'", specifier = ">=1.144.0" },
+    { name = "strands-agents", extras = ["openai"], specifier = ">=1.56.0" },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1342,66 +1402,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/50/9a/8c75e8c8a5b407a05
 wheels = [
     { url = "https://files.pythonhosted.org/packages/64/a8/bb76c7356de8ad57f59d5ff993d434df0607f07f08bcc9c9a5c275e399c0/openai-2.54.0-py3-none-any.whl", hash = "sha256:89089789197ccdb87f173a03145ed1598d00795220c93e96cf712b1cbf5e5f2b", size = 1660351, upload-time = "2026-08-11T18:46:56.684Z" },
 ]
-
-[[package]]
-name = "openjev"
-version = "0.0.1"
-source = { editable = "." }
-dependencies = [
-    { name = "httpx" },
-    { name = "openai" },
-    { name = "polars" },
-    { name = "pydantic" },
-    { name = "rich" },
-    { name = "strands-agents", extra = ["openai"] },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "bandit" },
-    { name = "codespell" },
-    { name = "deptry" },
-    { name = "mypy" },
-    { name = "pip-audit" },
-    { name = "pre-commit" },
-    { name = "pygount" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "pytest-randomly" },
-    { name = "pytest-timeout" },
-    { name = "pytestarch" },
-    { name = "ruff" },
-    { name = "semgrep" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "bandit", extras = ["toml"], marker = "extra == 'dev'", specifier = ">=1.7.8" },
-    { name = "codespell", marker = "extra == 'dev'", specifier = ">=2.3.0" },
-    { name = "deptry", marker = "extra == 'dev'", specifier = ">=0.20.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11.0" },
-    { name = "openai", specifier = ">=2.54.0" },
-    { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.7.0" },
-    { name = "polars", specifier = ">=1.44.2" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.6.0" },
-    { name = "pydantic", specifier = ">=2.13.5" },
-    { name = "pygount", marker = "extra == 'dev'", specifier = ">=1.6.4" },
-    { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
-    { name = "pytest-randomly", marker = "extra == 'dev'", specifier = ">=3.15.0" },
-    { name = "pytest-timeout", marker = "extra == 'dev'", specifier = ">=2.2.0" },
-    { name = "pytestarch", marker = "extra == 'dev'", specifier = ">=4.0.0" },
-    { name = "rich", specifier = ">=15.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
-    { name = "semgrep", marker = "extra == 'dev'", specifier = ">=1.144.0" },
-    { name = "strands-agents", extras = ["openai"], specifier = ">=1.56.0" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "opentelemetry-api"
