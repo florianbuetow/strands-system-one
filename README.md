@@ -4,12 +4,12 @@
 
 llm-system-one is an alternative System One implementation built from small open-weights LLMs, benchmarked against Jev. Use it as a local stand-in for Jev to experiment with Jev's typed prediction format on open-weights models.
 
-Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B, answer like Jev, TypeSafe's System One model: typed yes/no, choice and score answers, each with a probability for every allowed answer. The probabilities come either from a logprob readout, where the model writes no text, or from JSON the model writes out. Both methods are benchmarked against Jev on the public jevals suite.
+Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B, answer like Jev, TypeSafe's System One model: typed yes/no, choice and score answers, each with a probability for every allowed answer. The probabilities come either from a logprob readout, where the model writes no text, or from JSON the model writes out. Both methods are benchmarked against Jev on the public jevals suite. The benchmark also includes GLM 4.7 Flash, a larger 30B open-weights model, for comparison.
 
 ## Setup
 
 1. Install Python 3.12, [uv](https://docs.astral.sh/uv/getting-started/installation/), [just](https://github.com/casey/just#installation) and [LM Studio](https://lmstudio.ai/).
-2. In LM Studio, download and load the three models listed under [Prerequisites](#prerequisites), and start the local server on port 1234 (Developer tab, or `lms server start`). The endpoint and model names are set in `config/llm-system-one.toml`.
+2. In LM Studio, download and load the models listed under [Prerequisites](#prerequisites), and start the local server on port 1234 (Developer tab, or `lms server start`). The endpoint and model names are set in `config/llm-system-one.toml`.
 3. Install the dependencies and the git hook:
 
    ```bash
@@ -22,7 +22,7 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
    just fetch
    ```
 
-5. Check that all three models answer:
+5. Check that all models answer:
 
    ```bash
    just run
@@ -40,6 +40,7 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
    | `qwen3-0.6b` | `qwen3-0.6b` | MLX 8-bit (mlx-community) |
    | `minicpm5-2b` | `minicpm5-2b` | MLX 8-bit (mlx-community) |
    | `qwen3.5-4b` | `qwen3.5-4b-mlx` | MLX 8-bit (lmstudio-community) |
+   | `glm-4.7-flash` | `zai-org/glm-4.7-flash` | GGUF Q4_K_M |
 
    You only need the models you call. To load one from the command line: `lms load qwen3.5-4b-mlx`.
 3. `just init` has been run, so `llm-system-one` is installed in the project's environment. Run your scripts with `uv run`.
@@ -146,7 +147,7 @@ Test your thresholds on your own data: these models' confidence is not calibrate
 - Questions are answered one after another, so a call with 10 questions takes about 10 times as long as a call with one. Jev answers them all in one parallel pass.
 - `confidence` is `(K × largest probability − 1) / (K − 1)` for K options or levels, the formula TypeSafe's documentation uses to explain it. Jev's exact computation is not published. Noul answers have no confidence, as in Jev.
 - There is no token usage, request id or async client.
-- With readout, `choice` handles up to 100 options, and an option the model doesn't rank in its top 10 at a digit gets probability 0. With verbalized, questions with more than 10 options only get probabilities for the 5 most likely.
+- With readout, `choice` handles up to 100 options, and an option the model doesn't rank in its top 10 at a digit gets probability 0. A model that reads a two-digit label as one token, such as GLM 4.7 Flash, gives a probability to at most 10 options. With verbalized, questions with more than 10 options only get probabilities for the 5 most likely.
 - If a model gives no valid answer, `system_one` raises `UnansweredQuestionError`.
 
 Use Qwen3.5 4B with readout: it is the most accurate local option on all three benchmark tasks. See [Results](#results).
@@ -188,12 +189,12 @@ A System One model reads a *state* (any text or JSON) and answers one typed ques
 
 `SystemOneAgent` (`src/llm_system_one/agents.py`) is a Strands `Agent` running on one of two Strands model providers (`src/llm_system_one/providers.py`). Both work with any chat model served by an OpenAI-compatible endpoint.
 
-- **readout** (`LogprobReadoutModel`): the model writes no text. The options are numbered in the prompt, and the provider reads the probability of each number from the model's next-token probabilities. Two-digit numbers are read one digit at a time: `P("07") = P("0") · P("7" | "0")`. The website openjev.com calls this "direct readout".
+- **readout** (`LogprobReadoutModel`): the model writes no text. The options are numbered in the prompt, and the provider reads the probability of each number from the model's next-token probabilities. Two-digit numbers are read one digit at a time: `P("07") = P("0") · P("7" | "0")`. A tokenizer that encodes a two-digit number as one token, as GLM 4.7 Flash's does, is read in one step. The website openjev.com calls this "direct readout".
 - **verbalized** (`PrefilledOpenAIModel`): the model writes its probabilities as JSON, with the same prompt and validity rules jevals uses for LLMs. Invalid replies are retried twice.
 
-Both providers start the model's reply with an empty `<think></think>` block. Without it, MiniCPM5 2B and Qwen3.5 4B reason step by step before every answer, because LM Studio ignores their settings for turning reasoning off.
+Both providers start the model's reply with an empty `<think></think>` block. Without it, MiniCPM5 2B and Qwen3.5 4B reason step by step before every answer, because LM Studio ignores their settings for turning reasoning off. GLM 4.7 Flash also reasons by default, and the same block switches it off.
 
-These are not real System One models. All three are ordinary text generators that produce one token at a time. Readout gives them a System One interface: a single read of the prompt, no generated text, and a probability per answer. Jev is built and trained to output typed probabilities directly, in one parallel pass, for up to 255 options.
+These are not real System One models. All four are ordinary text generators that produce one token at a time. Readout gives them a System One interface: a single read of the prompt, no generated text, and a probability per answer. Jev is built and trained to output typed probabilities directly, in one parallel pass, for up to 255 options.
 
 ## Usage
 
@@ -204,7 +205,7 @@ just benchmark   # run the full suite on every model, then print the results tab
 just report      # print the results tables and write reports/benchmark/report.md
 ```
 
-`just benchmark` runs all 3 tasks × 300 items × 5 repeats for each model and method (27,000 decisions). It shows a progress bar per run. It also prints a status line every 30 seconds (`status_interval_seconds` in the config) with accuracy, valid-answer rate, ms per decision, decisions per second, and the time left for the current run and for the whole benchmark. Every decision is appended to `data/output/runs/<model>-<method>__<task>__0.1.0.jsonl` as soon as it is made, so an interrupted benchmark resumes where it stopped. Delete a run file to rerun it.
+`just benchmark` runs all 3 tasks × 300 items × 5 repeats for each model and method (36,000 decisions). It shows a progress bar per run. It also prints a status line every 30 seconds (`status_interval_seconds` in the config) with accuracy, valid-answer rate, ms per decision, decisions per second, and the time left for the current run and for the whole benchmark. Every decision is appended to `data/output/runs/<model>-<method>__<task>__0.1.0.jsonl` as soon as it is made, so an interrupted benchmark resumes where it stopped. Delete a run file to rerun it.
 
 ## Benchmark
 
@@ -222,23 +223,24 @@ Scoring follows the [jevals methodology](https://jevals.com/methodology/): Decis
 
 Differences from the published runs:
 
-- The models run as MLX 8-bit builds in LM Studio, not as the website's GGUF builds.
-- Latency and decisions per second for local rows are measured one request at a time on one machine. The published rows were measured by jevals over the internet at concurrency 4.
-- LM Studio returns at most 10 candidate tokens per step, so in Banking77 readout an option whose digit is not among the top 10 gets probability 0.
+- Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B run as MLX 8-bit builds in LM Studio, not as the website's GGUF builds. GLM 4.7 Flash is not one of the website's models; it runs as a GGUF Q4_K_M build.
+- Latency and decisions per second for local rows are measured one request at a time: the three small models on an Apple Silicon Mac, GLM 4.7 Flash on a second machine reached through LM Studio's LM Link. The published rows were measured by jevals over the internet at concurrency 4.
+- LM Studio returns at most 10 candidate tokens per step, so in Banking77 readout an option whose digit is not among the top 10 gets probability 0. GLM 4.7 Flash reads each two-digit label as one token, so its Banking77 readout gives a probability to at most 10 of the 77 options (6.1 on average).
 - jevals publishes its prompt template but not the text of two of its placeholders, so the verbalized prompt is close to the published one but not identical.
 - For PubMedQA and Banking77 the state text does not reproduce the `state_sha256` values in the suite files (HelpSteer2 matches 300 of 300). The labels match for all items.
 
 ## Results
 
-Full suite, 300 items × 5 repeats per task, run on 2026-09-23/24. Local models ran as MLX 8-bit builds in LM Studio on an Apple Silicon Mac, one request at a time (a few minutes of the run overlapped with other work on the machine); Jev's rows are its published runs, rescored with this project's code. The full report, including the six published LLMs, is in [`reports/benchmark/report.md`](reports/benchmark/report.md).
+Full suite, 300 items × 5 repeats per task. Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B ran on 2026-09-23/24 as MLX 8-bit builds in LM Studio on an Apple Silicon Mac, one request at a time (a few minutes of the run overlapped with other work on the machine). GLM 4.7 Flash ran on 2026-09-26 as a GGUF Q4_K_M build on a second machine, reached through LM Studio's LM Link, one request at a time; its latency is not comparable with the other rows. Jev's rows are its published runs, rescored with this project's code. The full report, including the six published LLMs, is in [`reports/benchmark/report.md`](reports/benchmark/report.md).
 
 Decision Score: 100 = perfect, 0 = no better than always answering with the label base rates, below 0 = worse than that. ECE is the calibration gap in points (lower is better).
 
-- **Qwen3.5 4B with readout is the best local option on all three tasks**, but it stays well below Jev: Decision Score 45.3 vs 69.0 on PubMedQA and 51.9 vs 67.8 on Banking77.
-- **Readout beats verbalized for Qwen3.5 4B on every task**, and it is two to four times as fast on PubMedQA and HelpSteer2.
-- **The two smaller models are no better than guessing the base rates** on PubMedQA and HelpSteer2, and mostly worse. Their probabilities are badly calibrated (ECE 22–66 points) and strongly biased, for example toward "yes" or toward one rubric level.
-- **HelpSteer2 is hard for everyone**: no model, Jev included, is clearly better than the base rates.
-- **Readout is slow on Banking77** (about 4.2 s per answer for Qwen3.5 4B): with 77 options each answer needs up to 9 label reads. On the 2- and 5-option tasks its median is 0.37–0.53 s, close to Jev's published 0.44–0.48 s (measured over the internet).
+- **Qwen3.5 4B with readout is the best local option on PubMedQA and Banking77**, but it stays well below Jev: Decision Score 45.3 vs 69.0 on PubMedQA and 51.9 vs 67.8 on Banking77.
+- **GLM 4.7 Flash, at 30B the largest local model, doesn't beat Qwen3.5 4B on PubMedQA or Banking77** (21.6 and 43.2 with readout), but it is the best local option on HelpSteer2 (4.8 with readout).
+- **Readout beats verbalized for Qwen3.5 4B and GLM 4.7 Flash on every task**, and for Qwen3.5 4B it is two to four times as fast on PubMedQA and HelpSteer2.
+- **The two smallest models are no better than guessing the base rates** on PubMedQA and HelpSteer2, and mostly worse. Their probabilities are badly calibrated (ECE 22–66 points) and strongly biased, for example toward "yes" or toward one rubric level.
+- **HelpSteer2 is hard for everyone**: only GLM 4.7 Flash with readout has a 95% interval entirely above the base rates, and only just (0.2 to 9.1). Jev's point estimate is higher, 9.2, but its interval, -4.5 to 21.4, includes zero.
+- **Readout is slow on Banking77** (about 4.2 s per answer for Qwen3.5 4B): with 77 options each answer needs up to 9 label reads. On the 2- and 5-option tasks its median is 0.37–0.53 s, close to Jev's published 0.44–0.48 s (measured over the internet). GLM 4.7 Flash reads each two-digit label as one token, so it needs fewer reads, but at most 10 of the 77 options get a probability (6.1 on average).
 
 ### PubMedQA (noul)
 
@@ -251,6 +253,8 @@ Decision Score: 100 = perfect, 0 = no better than always answering with the labe
 | MiniCPM5 2B | verbalized | -66.6 [-93.7, -43.0] | 50.5% | 40.5 | 100.0% | 1048 | 1486 | 0.92 |
 | Qwen3.5 4B | readout | 45.3 [35.9, 54.6] | 82.1% | 4.9 | 100.0% | 526 | 1043 | 1.80 |
 | Qwen3.5 4B | verbalized | 19.0 [4.3, 33.8] | 68.1% | 17.0 | 100.0% | 1011 | 1755 | 0.92 |
+| GLM 4.7 Flash | readout | 21.6 [15.1, 27.2] | 79.0% | 19.1 | 100.0% | 58 | 213 | 11.51 |
+| GLM 4.7 Flash | verbalized | 6.9 [-5.0, 18.5] | 74.3% | 18.9 | 99.9% | 220 | 2069 | 2.27 |
 | Label prior | base rates | 0.0 [0.0, 0.0] | 62.0% | — | 100.0% | — | — | — |
 
 ### HelpSteer2 (score)
@@ -264,6 +268,8 @@ Decision Score: 100 = perfect, 0 = no better than always answering with the labe
 | MiniCPM5 2B | verbalized | -39.3 [-44.6, -33.9] | 31.0% | 53.1 | 98.9% | 932 | 1820 | 0.94 |
 | Qwen3.5 4B | readout | -11.4 [-25.1, 1.6] | 44.1% | 29.3 | 100.0% | 370 | 1282 | 2.13 |
 | Qwen3.5 4B | verbalized | -37.4 [-57.7, -19.0] | 33.5% | 30.5 | 99.9% | 1491 | 2852 | 0.62 |
+| GLM 4.7 Flash | readout | 4.8 [0.2, 9.1] | 38.3% | 9.7 | 100.0% | 54 | 332 | 10.20 |
+| GLM 4.7 Flash | verbalized | -38.2 [-44.5, -31.9] | 37.7% | 45.6 | 100.0% | 421 | 1612 | 1.80 |
 | Label prior | base rates | 0.0 [0.0, 0.0] | 41.7% | — | 100.0% | — | — | — |
 
 ### Banking77 (choice)
@@ -277,6 +283,8 @@ Decision Score: 100 = perfect, 0 = no better than always answering with the labe
 | MiniCPM5 2B | verbalized | 26.9 [21.6, 32.5] | 46.9% | 12.1 | 98.0% | 1536 | 2272 | 0.64 |
 | Qwen3.5 4B | readout | 51.9 [44.9, 59.0] | 69.9% | 16.7 | 100.0% | 4185 | 4605 | 0.24 |
 | Qwen3.5 4B | verbalized | 44.9 [40.3, 49.7] | 67.5% | 15.3 | 99.3% | 1924 | 2532 | 0.53 |
+| GLM 4.7 Flash | readout | 43.2 [37.0, 49.8] | 61.5% | 12.2 | 100.0% | 303 | 375 | 3.68 |
+| GLM 4.7 Flash | verbalized | 29.1 [21.8, 36.1] | 57.2% | 26.2 | 99.2% | 669 | 2563 | 1.14 |
 | Label prior | base rates | 0.0 [0.0, 0.0] | 1.3% | — | 100.0% | — | — | — |
 
 ## Data in this repository

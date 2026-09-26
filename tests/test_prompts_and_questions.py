@@ -66,9 +66,9 @@ def test_choice_options_are_shuffled_per_seed_but_noul_is_not() -> None:
     assert build_question(noul, item, 3)[0].options == noul.options
 
 
-def test_config_loads_three_models() -> None:
+def test_config_loads_four_models() -> None:
     config = load_config(CONFIG)
-    assert [model.key for model in config.models] == ["qwen3-0.6b", "minicpm5-2b", "qwen3.5-4b"]
+    assert [model.key for model in config.models] == ["qwen3-0.6b", "minicpm5-2b", "qwen3.5-4b", "glm-4.7-flash"]
     assert config.model("minicpm5-2b").model_id == "minicpm5-2b"
     with pytest.raises(KeyError, match="known keys"):
         config.model("gpt")

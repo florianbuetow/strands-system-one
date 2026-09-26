@@ -102,7 +102,10 @@ def render(results: list[TaskResults], console: Console) -> None:
         for row in result.rows:
             table.add_row(*_cells(row), style="bold green" if row.run.local else None)
         console.print(table)
-        console.print("  ECE = calibration gap in points. Latency and decisions/s of local rows: one request at a time on this machine.")
+        console.print(
+            "  ECE = calibration gap in points. Latency and decisions/s of local rows: one request at a time, "
+            "on the machine that served the model."
+        )
         for line in result.incomplete:
             console.print(f"  [yellow]not scored yet:[/yellow] {line}")
         console.print()
@@ -120,7 +123,7 @@ def write_markdown(config: Config, results: list[TaskResults], path: Path) -> No
         "",
         "**We did not call Jev or run the six published reference LLMs ourselves.** Their rows use answer logs published by Jevals, "
         "rescored with our code. Only the rows marked **(local)** come from models we ran ourselves through LM Studio: "
-        "Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B, each with readout and verbalized probabilities. "
+        "Qwen3 0.6B, MiniCPM5 2B, Qwen3.5 4B and GLM 4.7 Flash, each with readout and verbalized probabilities. "
         "The Label prior row is a calculated baseline, not a model run.",
         "",
         f"`just fetch` downloads the required files from `{config.benchmark.jevals_repository}`, pinned to commit "
@@ -153,8 +156,11 @@ def write_markdown(config: Config, results: list[TaskResults], path: Path) -> No
         "",
         (
             "Reference latency comes straight from the published logs, where Jevals measured those requests over the "
-            "internet at concurrency 4. Local latency comes from our own runs, processing one request at a time on this "
-            "machine. We didn't remeasure Jev's latency. The scoring code is shared, but the execution conditions aren't, "
+            "internet at concurrency 4. Local latency comes from our own runs, processing one request at a time. Qwen3 0.6B, "
+            "MiniCPM5 2B and Qwen3.5 4B ran as MLX 8-bit builds on an Apple Silicon Mac. GLM 4.7 Flash ran as a GGUF Q4_K_M "
+            "build on a second machine, reached through LM Studio's LM Link, so its latency reflects different hardware and "
+            "includes the hop between the two machines. We didn't remeasure Jev's latency. The scoring code is shared, but "
+            "the execution conditions aren't, "
             "so these tables aren't a controlled speed comparison. We also didn't measure cost or energy use. "
             "Point-estimate rankings on their own don't establish statistically significant differences."
         ),
@@ -205,26 +211,44 @@ def write_markdown(config: Config, results: list[TaskResults], path: Path) -> No
         "",
         (
             "HelpSteer2 is the difficult case for everyone. Jev has the highest score point estimate at 9.2, followed by "
-            "GLM at 7.8 and Gemini at 4.6. All three 95% intervals include zero. None of the systems in this table has an "
-            "interval entirely above the label-prior baseline on this task, so the apparent ranking shouldn't be read as a "
-            "clear demonstration that the leading system adds value over that baseline."
+            "GLM-5.3 at 7.8, GLM 4.7 Flash with readout at 4.8 and Gemini at 4.6. The 95% intervals of Jev, GLM-5.3 and "
+            "Gemini include zero. GLM 4.7 Flash with readout is the only system whose interval lies entirely above the "
+            "label-prior baseline on this task, and only just, at [0.2, 9.1]. Jev's lead in point estimate therefore "
+            "isn't a clear demonstration that it adds value over that baseline."
         ),
         "",
         (
-            "Qwen3.5 4B with readout is the strongest local combination by Decision Score on all three tasks. It reaches "
-            "45.3 on PubMedQA and 51.9 on Banking77, compared with Jev's 69.0 and 67.8. Its corresponding accuracies are "
-            "82.1% and 69.9%, versus Jev's 91.3% and 79.7%. It serves as useful evidence that a small local model can beat "
-            "the label-prior baseline on these tasks, while still leaving a substantial gap to Jev's published results."
+            "Qwen3.5 4B with readout is the strongest local combination by Decision Score on PubMedQA and Banking77. It "
+            "reaches 45.3 on PubMedQA and 51.9 on Banking77, compared with Jev's 69.0 and 67.8. Its corresponding accuracies "
+            "are 82.1% and 69.9%, versus Jev's 91.3% and 79.7%. It serves as useful evidence that a small local model can "
+            "beat the label-prior baseline on these tasks, while still leaving a substantial gap to Jev's published results."
+        ),
+        "",
+        (
+            "GLM 4.7 Flash is the largest local model, at 30B parameters, but it doesn't beat Qwen3.5 4B on those two tasks. "
+            "With readout it scores 21.6 on PubMedQA and 43.2 on Banking77, with accuracies of 79.0% and 61.5%, and its "
+            "PubMedQA probabilities are less well calibrated (ECE 19.1 against Qwen's 4.9). On HelpSteer2 it is the "
+            "strongest local combination, at 4.8 against Qwen's -11.4. These results cover GLM as configured here: a 4-bit "
+            "GGUF build, with its default reasoning switched off by the empty think block that opens every answer."
+        ),
+        "",
+        (
+            "GLM 4.7 Flash's Banking77 readout row isn't a like-for-like comparison with the other local readout rows. GLM "
+            "reads each two-digit label as a single token, and LM Studio returns only the 10 most likely tokens, so GLM "
+            "gives a probability to at most 10 of the 77 options: 6.1 on average, against 67.3 for Qwen3.5 4B, which reads "
+            "the labels one digit at a time. Every other option gets probability 0."
         ),
         "",
         (
             "On HelpSteer2, Qwen 4B readout actually has the highest accuracy in the table, at 44.1%, ahead of Jev's 41.3%. Yet "
-            "its Decision Score is -11.4, compared with Jev's 9.2. This is the clearest example of why choosing a system on "
-            "accuracy alone can be misleading when downstream decisions depend on its probabilities."
+            "its Decision Score is -11.4, compared with Jev's 9.2. GLM 4.7 Flash readout shows the reverse: its accuracy of "
+            "38.3% is below the label prior's 41.7%, yet its Decision Score is positive, and its ECE of 9.7 is the lowest on "
+            "this task. These are the clearest examples of why choosing a system on accuracy alone can be misleading when "
+            "downstream decisions depend on its probabilities."
         ),
         "",
         (
-            "The smaller models are less convincing. Qwen3 0.6B has negative Decision Scores on every task with both "
+            "The two smallest models are less convincing. Qwen3 0.6B has negative Decision Scores on every task with both "
             "methods. MiniCPM5 2B has positive scores on Banking77, but negative point estimates on PubMedQA and "
             "HelpSteer2. Those results describe these models and configurations; they don't establish a universal minimum "
             "model size for decision tasks."
@@ -232,8 +256,9 @@ def write_markdown(config: Config, results: list[TaskResults], path: Path) -> No
         "",
         (
             "For Qwen 4B, readout improves Decision Score over verbalized output on every task: 19.0 to 45.3 on PubMedQA, "
-            "-37.4 to -11.4 on HelpSteer2, and 44.9 to 51.9 on Banking77. Readout also gives valid outputs for every local "
-            "model on every task. That formatting reliability is useful, but it isn't a guarantee of good probabilities."
+            "-37.4 to -11.4 on HelpSteer2, and 44.9 to 51.9 on Banking77. The same holds for GLM 4.7 Flash: 6.9 to 21.6, "
+            "-38.2 to 4.8, and 29.1 to 43.2. Readout also gives valid outputs for every local model on every task. That "
+            "formatting reliability is useful, but it isn't a guarantee of good probabilities."
         ),
         "",
         (
@@ -253,15 +278,17 @@ def write_markdown(config: Config, results: list[TaskResults], path: Path) -> No
             "The local results add another tradeoff. Qwen 4B readout has median latencies of 526 ms on PubMedQA and 370 ms "
             "on HelpSteer2, but 4,185 ms on Banking77. On that last task, verbalized output takes 1,924 ms: readout's "
             "better score comes with more than twice the median latency. The tables alone don't establish the cause of this "
-            "slowdown. Local and published timings use different execution conditions, so they can't establish a controlled "
-            "speed advantage."
+            "slowdown. GLM 4.7 Flash has the lowest median latency in every table, 54 to 303 ms with readout, but it ran on "
+            "different hardware from the other local models, so its timings aren't comparable with theirs. Local and "
+            "published timings use different execution conditions, so they can't establish a controlled speed advantage."
         ),
         "",
         (
             "Running locally gives control over where inference happens and which model is served, at the cost of managing "
             "the hardware and accepting the quality and latency measured for that setup. This benchmark doesn't establish a "
             "cost, energy, or privacy-compliance advantage. For these tasks, Jev's published results set a stronger "
-            "decision-quality reference than our local models; Qwen 4B readout is the strongest local candidate we tested. "
+            "decision-quality reference than our local models; Qwen 4B readout is the strongest local candidate we tested on "
+            "PubMedQA and Banking77, and GLM 4.7 Flash readout on HelpSteer2. "
             "A deployment decision should still check the actual task's probabilities, error consequences, and latency "
             "requirements."
         ),
