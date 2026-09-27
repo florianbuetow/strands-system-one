@@ -24,12 +24,18 @@ class ProviderConfig(_Strict):
 
 
 class ModelConfig(_Strict):
-    """One model served by the provider."""
+    """One model served by the provider.
+
+    build and machine say how the model was served. The report shows them, and compares local timings only
+    between models that ran on the same machine.
+    """
 
     key: str
     model_id: str
     display_name: str
     assistant_prefill: str
+    build: str
+    machine: str
 
 
 class ReadoutConfig(_Strict):
@@ -69,6 +75,14 @@ class BenchmarkConfig(_Strict):
     status_interval_seconds: float = Field(gt=0)
 
 
+class ReportConfig(_Strict):
+    """Thresholds of the rules that write the HTML report's text."""
+
+    sparse_readout_share: float = Field(gt=0, lt=1)
+    valid_rate_floor: float = Field(gt=0, le=100)
+    slow_readout_factor: float = Field(gt=1)
+
+
 class SourceConfig(_Strict):
     """Where a task's item text lives inside its pinned Hugging Face dataset."""
 
@@ -85,6 +99,7 @@ class Config(_Strict):
     readout: ReadoutConfig
     verbalized: VerbalizedConfig
     benchmark: BenchmarkConfig
+    report: ReportConfig
     sources: dict[str, SourceConfig]
 
     def model(self, key: str) -> ModelConfig:

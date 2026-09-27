@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LLM-based-system-one Benchmark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  --paper: #eef0f0;
+  --surface: #fbfcfc;
+  --ink: #11171b;
+  --ink-2: #414b52;
+  --muted: #5f6a73;
+  --hair: #dfe4e6;
+  --rule: #b8c1c6;
+  --jev: #2a78d6;
+  --local: #eb6834;
+  --ref: #7c878e;
+  --prior: #2f383e;
+  --up: #006300;
+  --down: #c0392f;
+  --jev-wash: rgba(42, 120, 214, 0.08);
+  --neg-wash: rgba(17, 23, 27, 0.045);
+  --connector: rgba(235, 104, 52, 0.5);
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1213;
+    --surface: #171b1d;
+    --ink: #eef1f2;
+    --ink-2: #b4bdc2;
+    --muted: #8b969d;
+    --hair: #262d31;
+    --rule: #465157;
+    --jev: #3987e5;
+    --local: #d95926;
+    --ref: #7f8b93;
+    --prior: #c3cbcf;
+    --up: #0ca30c;
+    --down: #e66767;
+    --jev-wash: rgba(57, 135, 229, 0.14);
+    --neg-wash: rgba(255, 255, 255, 0.035);
+    --connector: rgba(217, 89, 38, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1213;
+  --surface: #171b1d;
+  --ink: #eef1f2;
+  --ink-2: #b4bdc2;
+  --muted: #8b969d;
+  --hair: #262d31;
+  --rule: #465157;
+  --jev: #3987e5;
+  --local: #d95926;
+  --ref: #7f8b93;
+  --prior: #c3cbcf;
+  --up: #0ca30c;
+  --down: #e66767;
+  --jev-wash: rgba(57, 135, 229, 0.14);
+  --neg-wash: rgba(255, 255, 255, 0.035);
+  --connector: rgba(217, 89, 38, 0.6);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p, ul, dl, dd, figure { margin: 0; }
+b { font-weight: 650; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--jev); outline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: 0.875em; }
+
+.sheet {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 4vw, 48px);
+  padding-block: clamp(36px, 6vw, 72px) 48px;
+  display: grid;
+  gap: clamp(32px, 4.5vw, 52px);
+}
+.sheet > *, .section > * { min-width: 0; }
+
+/* Type */
+.eyebrow, .kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  font-family: var(--font-display);
+  font-stretch: 70%;
+  font-weight: 800;
+  font-size: clamp(2.75rem, 7.5vw, 5.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  max-width: 15ch;
+}
+h2 {
+  font-family: var(--font-display);
+  font-stretch: 76%;
+  font-weight: 750;
+  font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--font-display);
+  font-stretch: 86%;
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.small { font-size: 0.9375rem; color: var(--ink-2); }
+
+/* Masthead */
+.masthead { display: grid; gap: 22px; }
+.lede { font-size: clamp(1.125rem, 2vw, 1.3rem); line-height: 1.55; color: var(--ink-2); max-width: 62ch; }
+.spec {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 2px solid var(--ink);
+  margin-top: 10px;
+}
+.spec > div { display: grid; gap: 3px; align-content: start; padding: 10px 16px 12px 0; border-bottom: 1px solid var(--rule); }
+.spec dt { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.spec dd { font-family: var(--font-display); font-weight: 600; font-size: 0.9375rem; line-height: 1.3; }
+.spec > .systems { grid-column: 1 / -1; gap: 8px; padding-right: 0; }
+/* Two halves with no gap, so the second group starts exactly where the third column above starts */
+.systems dd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
+.sysgrp { display: grid; gap: 3px; align-content: start; padding-right: 16px; }
+.sysgrp .sg-h { display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 400; letter-spacing: 0.02em; color: var(--muted); }
+.sysgrp p + p { margin-top: 6px; }
+.sysgrp .sg-sub { display: block; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 400; letter-spacing: 0.02em; color: var(--muted); }
+@media (max-width: 960px) { .spec { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Sections */
+.section { display: grid; gap: 28px; }
+.head { display: grid; gap: 10px; max-width: 70ch; }
+.head > p:not(.kicker) { color: var(--ink-2); }
+
+/* Findings */
+.findings { list-style: none; padding: 0; border-top: 2px solid var(--ink); }
+.findings li {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 6px 40px;
+  padding: 18px 0 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.findings b { font-family: var(--font-display); font-stretch: 82%; font-weight: 700; font-size: 1.25rem; line-height: 1.25; text-wrap: balance; }
+.findings span { color: var(--ink-2); }
+@media (max-width: 760px) { .findings li { grid-template-columns: 1fr; } }
+
+/* How to read */
+.tasks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 32px; }
+.task { display: grid; gap: 8px; align-content: start; border-top: 1px solid var(--ink); padding-top: 12px; }
+.task .type { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted); }
+.task p:not(.type) { font-size: 1rem; }
+.facts { list-style: none; padding: 0; font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.6; color: var(--ink-2); }
+@media (max-width: 820px) { .tasks { grid-template-columns: 1fr; } }
+
+.explain { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px 56px; align-items: start; }
+@media (max-width: 880px) { .explain { grid-template-columns: 1fr; } }
+.stack { display: grid; gap: 14px; }
+.sources { border-top: 1px solid var(--ink); }
+.sources > div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hair); }
+.sources dt { display: flex; align-items: baseline; gap: 6px; font-family: var(--font-display); font-weight: 650; font-size: 0.9375rem; }
+.sources dd { font-size: 0.96875rem; color: var(--ink-2); }
+@media (max-width: 480px) { .sources > div { grid-template-columns: 1fr; gap: 4px; } }
+
+.ds-box {
+  display: grid;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  padding: 20px clamp(16px, 2.4vw, 24px) 22px;
+}
+.formula {
+  font-family: var(--font-display);
+  font-stretch: 90%;
+  font-weight: 500;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  padding: 10px 0;
+  border-block: 1px solid var(--hair);
+  text-wrap: balance;
+}
+.formula b { font-weight: 700; }
+.ds-scale { display: grid; gap: 6px; padding-top: 4px; }
+.ds-track {
+  position: relative;
+  height: 44px;
+  background: linear-gradient(90deg, var(--neg-wash) 50%, transparent 50%);
+  border-bottom: 1px solid var(--rule);
+}
+.ds-track .ds-zero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--ink-2); }
+.ds-track .m { top: 30px; }
+.ds-track .v { position: absolute; top: 4px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink); }
+.ds-ticks { position: relative; height: 16px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.ds-ticks span { position: absolute; top: 0; }
+.ds-zones { display: grid; grid-template-columns: 1fr 1fr; font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.4; color: var(--ink-2); padding-top: 4px; }
+.ds-zones span:first-child { text-align: right; padding-right: 10px; }
+.ds-zones span:last-child { padding-left: 10px; }
+
+.glossary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; border-top: 1px solid var(--ink); }
+.glossary > div { display: grid; gap: 4px; align-content: start; padding: 12px 0 14px; border-bottom: 1px solid var(--hair); }
+.glossary dt { font-family: var(--font-display); font-stretch: 88%; font-weight: 700; font-size: 1rem; }
+.glossary dd { font-size: 0.96875rem; color: var(--ink-2); }
+@media (max-width: 880px) { .glossary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .glossary { grid-template-columns: 1fr; } }
+
+/* Figures */
+.panel {
+  display: grid;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  padding: clamp(14px, 2.4vw, 24px);
+}
+.panel > * { min-width: 0; }
+figcaption { font-size: 0.9375rem; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--font-display); font-size: 0.8125rem; color: var(--ink-2); }
+.legend > span { display: inline-flex; align-items: center; gap: 7px; }
+.key-ci { display: inline-block; width: 20px; height: 2px; background: var(--ink-2); border-radius: 1px; }
+.key-ref { display: inline-block; width: 0; height: 14px; border-left: 1px dashed var(--jev); }
+.key-wash { display: inline-block; width: 16px; height: 12px; background: var(--neg-wash); box-shadow: inset 0 0 0 1px var(--hair); border-right: 1px solid var(--ink-2); }
+.key-cap { display: inline-flex; align-items: center; }
+.key-cap::before { content: ""; width: 18px; height: 2px; background: var(--ink-2); }
+.key-cap::after { content: ""; width: 2px; height: 8px; background: var(--ink-2); border-radius: 1px; }
+.notes { list-style: none; padding: 0; display: grid; gap: 10px; }
+.notes li { position: relative; padding-left: 18px; color: var(--ink-2); }
+.notes li::before { content: ""; position: absolute; left: 0; top: 0.8em; width: 8px; height: 1px; background: var(--ink-2); }
+
+/* Marks */
+.mk { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; }
+.mk.jev, .m.jev { background: var(--jev); }
+.mk.ref, .m.ref { background: var(--ref); }
+.mk.loc, .m.loc { background: var(--local); }
+.mk.prior, .m.prior { background: var(--prior); border-radius: 1px; transform: rotate(45deg) scale(0.8); }
+.mk.hollow { background: transparent; box-shadow: inset 0 0 0 2px var(--local); }
+.m { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+.m.hollow { background: var(--surface); box-shadow: inset 0 0 0 2px var(--local), 0 0 0 2px var(--surface); }
+.w { position: absolute; top: 50%; height: 2px; margin-top: -1px; border-radius: 1px; }
+.w.jev, .cap.jev { background: var(--jev); }
+.w.ref, .cap.ref { background: var(--ref); }
+.w.loc, .cap.loc { background: var(--local); }
+.cap { position: absolute; top: 50%; width: 2px; height: 8px; margin: -4px 0 0 -1px; border-radius: 1px; }
+.cn { position: absolute; top: 50%; height: 2px; margin-top: -1px; background: var(--connector); }
+
+/* Row charts (Fig. 2, 3, 4): one wide layout, one stacked layout for narrow containers */
+.rc { container-type: inline-size; }
+.rc-narrow { display: none; }
+@container (max-width: 719px) {
+  .rc-wide { display: none; }
+  .rc-narrow { display: grid; gap: 36px; }
+}
+.fx { display: grid; font-family: var(--font-display); }
+.fx-head { display: grid; gap: 1px; align-content: end; padding-bottom: 4px; }
+.fx-head.num { justify-items: end; text-align: right; }
+.fx-task { font-stretch: 88%; font-weight: 700; font-size: 1rem; line-height: 1.2; color: var(--ink); }
+.fx-type { font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.4; color: var(--muted); }
+.fx-type .mk { width: 9px; height: 9px; }
+.fx-reflab { position: relative; }
+.fx-reflab span { position: absolute; bottom: 3px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--ink-2); white-space: nowrap; }
+.fx-rule { border-top: 1px solid var(--rule); z-index: 2; }
+.fx-group {
+  z-index: 3;
+  display: flex; align-items: flex-end;
+  padding: 0 12px 6px 0;
+  font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+.is-narrow .fx-group { padding-top: 10px; background: var(--surface); border-top: 1px solid var(--rule); }
+.fx-group.model { font-family: var(--font-display); font-size: 0.9375rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ink); align-items: center; padding-top: 10px; background: none; }
+.fx-label {
+  z-index: 3;
+  display: flex; align-items: center; gap: 8px;
+  padding-right: 14px;
+  font-size: 0.875rem; white-space: nowrap;
+}
+.fx-label.is-jev { font-weight: 650; }
+.fx-label .meth { margin-left: auto; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 400; color: var(--muted); }
+.is-narrow .fx-label {
+  display: grid; grid-template-columns: 10px minmax(0, 1fr); column-gap: 8px; align-content: center;
+  padding: 4px 8px 4px 0;
+  font-size: 0.8125rem; line-height: 1.2; white-space: normal;
+}
+.is-narrow .fx-label .mk { align-self: start; margin-top: 3px; }
+.is-narrow .fx-label .meth { grid-column: 2; margin-left: 0; }
+.fx-band { background: var(--jev-wash); }
+.fx-layer, .fx-refline { position: relative; }
+.fx-layer i, .fx-refline i { position: absolute; top: 0; bottom: 0; }
+.fx-layer .wash { background: var(--neg-wash); }
+.fx-layer .gl { width: 1px; background: var(--hair); }
+.fx-layer .zero { width: 1px; background: var(--ink-2); }
+.fx-refline { z-index: 1; }
+.fx-refline i { width: 0; border-left: 1px dashed var(--jev); }
+.fx-plot { position: relative; z-index: 2; }
+.fx-num {
+  display: flex; align-items: center; justify-content: flex-end;
+  font-family: var(--font-mono); font-size: 0.8125rem; font-variant-numeric: tabular-nums;
+  color: var(--ink-2); white-space: nowrap; z-index: 2;
+}
+.fx-num.flag { color: var(--ink); font-weight: 600; }
+.dl.up { color: var(--up); }
+.dl.down { color: var(--down); }
+.dl .ic { font-size: 0.625rem; margin-right: 3px; }
+.fx-axis { position: relative; height: 30px; border-top: 1px solid var(--rule); }
+.fx-axis i { position: absolute; top: 0; width: 1px; height: 5px; background: var(--rule); }
+.fx-axis span { position: absolute; top: 8px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fx-axis-title { padding-top: 8px; font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.35; color: var(--muted); }
+
+/* Change table under the stacked Fig. 3 */
+.dn { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); column-gap: 10px; font-family: var(--font-display); }
+.dn > span { padding: 6px 0; border-bottom: 1px solid var(--hair); }
+.dn .h { align-self: end; font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.35; color: var(--muted); border-bottom-color: var(--rule); }
+.dn .g { grid-column: 1 / -1; padding-top: 12px; font-size: 0.9375rem; font-weight: 700; border-bottom-color: var(--rule); }
+.dn .t { font-size: 0.8125rem; }
+.dn .n, .dn .h.n { text-align: right; }
+.dn .n { font-family: var(--font-mono); font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+.dn .n.flag { color: var(--ink); font-weight: 600; }
+
+/* Paired bars (Fig. 5) */
+.pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 940px) { .pairs { grid-template-columns: 1fr; } }
+.pair { display: grid; gap: 14px; align-content: start; }
+.pb { container-type: inline-size; font-family: var(--font-display); }
+.pb-row { display: grid; grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; }
+.pb-row:not(.pb-top) { border-top: 1px solid var(--hair); }
+.pb-head { align-self: end; padding-bottom: 6px; font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.pb-l { display: grid; grid-template-columns: 10px minmax(0, 1fr); column-gap: 8px; align-content: center; min-height: 40px; padding-block: 5px; font-size: 0.8125rem; line-height: 1.25; }
+.pb-l .mk { align-self: start; margin-top: 3px; }
+.pb-l .meth { grid-column: 2; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.pb-c { position: relative; min-height: 40px; }
+.pb-z { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink-2); }
+.bar { position: absolute; top: 50%; height: 12px; margin-top: -6px; }
+.bar.pos { border-radius: 0 4px 4px 0; }
+.bar.neg { border-radius: 4px 0 0 4px; }
+.bar.jev { background: var(--jev); }
+.bar.ref { background: var(--ref); }
+.bar.loc { background: var(--local); }
+.bar.prior { background: var(--prior); }
+.val { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink); white-space: nowrap; }
+@container (max-width: 399px) {
+  .pb-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .pb-l { grid-column: 1 / -1; min-height: 0; padding-block: 8px 0; }
+  .pb-top .pb-l { display: none; }
+  .pb-c { min-height: 30px; }
+}
+
+/* Scatter (Fig. 1) */
+.scs { display: grid; gap: 32px; }
+.sc { display: grid; gap: 6px; }
+.sc-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-family: var(--font-display); }
+.sc-grid { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); }
+.sc-yt { grid-column: 1 / -1; padding-bottom: 6px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.sc-ylab { position: relative; }
+.sc-ylab span { position: absolute; right: 8px; transform: translateY(-50%); font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.sc-plot { position: relative; height: clamp(260px, 32vw, 340px); border-left: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.sc-plot .m { z-index: 2; }
+.sc-labels { position: absolute; inset: 0; z-index: 3; }
+.sc-lab {
+  position: absolute;
+  font-family: var(--font-display); font-size: 0.75rem; line-height: 1.2; color: var(--ink-2); white-space: nowrap;
+  text-shadow: 0 0 2px var(--surface), 0 0 2px var(--surface), 0 0 4px var(--surface);
+}
+.sc-lab.is-jev { color: var(--ink); font-weight: 700; }
+.sc-lab .meth { font-family: var(--font-mono); font-size: 0.625rem; color: var(--muted); }
+.sc-lead { position: absolute; height: 1px; background: var(--muted); transform-origin: 0 50%; }
+.sc-xlab { grid-column: 2; position: relative; height: 22px; }
+.sc-xlab span { position: absolute; top: 5px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); white-space: nowrap; }
+.sc-xt { grid-column: 2; display: flex; justify-content: space-between; gap: 12px; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.sc-miss { font-size: 0.8125rem; color: var(--muted); }
+
+/* Limits */
+.limits { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; border-top: 1px solid var(--ink); }
+.limits li { padding: 14px 0 16px; border-bottom: 1px solid var(--hair); color: var(--ink-2); font-size: 1rem; }
+.limits b { display: block; margin-bottom: 2px; font-family: var(--font-display); font-stretch: 88%; font-weight: 700; font-size: 1rem; color: var(--ink); }
+@media (max-width: 760px) { .limits { grid-template-columns: 1fr; } }
+
+/* Tables: full width when they fit, one card per row when they don't */
+.tables { display: grid; gap: 36px; }
+.tbl { display: grid; gap: 10px; container-type: inline-size; }
+.tbl h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.tbl h3 span { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 400; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-family: var(--font-display); font-size: 0.875rem; }
+th {
+  padding: 8px;
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted); text-align: left; vertical-align: bottom;
+}
+td { padding: 7px 8px; border-bottom: 1px solid var(--hair); vertical-align: middle; }
+.num { text-align: right; }
+td.num { font-family: var(--font-mono); font-size: 0.8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.num.dsc { white-space: normal; }
+td .ci { color: var(--muted); white-space: nowrap; }
+.sysin { display: inline-flex; align-items: center; gap: 8px; }
+.tag { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--hair); border-radius: 3px; padding: 0 4px; }
+tr.is-jev td { background: var(--jev-wash); }
+tr.is-jev td.sys { font-weight: 650; }
+tr.is-prior td { color: var(--muted); }
+@container (max-width: 679px) {
+  table, tbody, tr, td { display: block; }
+  thead { display: none; }
+  tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; padding: 12px 8px; border-bottom: 1px solid var(--hair); }
+  tr.is-jev { background: var(--jev-wash); }
+  tr.is-jev td { background: none; }
+  td { padding: 0; border: 0; }
+  td.sys { grid-column: 1 / -1; font-weight: 600; }
+  td.num { text-align: left; white-space: normal; }
+  td[data-label]::before { content: attr(data-label); display: block; font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+}
+
+/* Colophon */
+.colophon { display: grid; gap: 8px; padding-top: 18px; border-top: 2px solid var(--ink); font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.6; color: var(--muted); }
+.colophon code { font-size: 1em; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+
+<main class="sheet">
+
+<header class="masthead">
+  <p class="eyebrow">LLM-based-system-one · Benchmark report · Jevals release 2026-09-18</p>
+  <h1>Local System One Agents vs&nbsp;Jev</h1>
+  <p class="lede"><a href="https://github.com/florianbuetow/strands-system-one" target="_blank" rel="noopener">This project</a> implements an LLM-based system-one model based on four open-weights models that answer like Jev, TypeSafe’s System One model: a typed yes/no, choice or score answer with a probability for every allowed answer. Each local model gives its probabilities two ways: read from its next-token log probabilities (readout) or written out as JSON (verbalized). The benchmark scores those probabilities on three Jevals tasks and compares them with Jev and with a baseline that only knows how often each answer occurs.</p>
+  <dl class="spec"><div><dt>Suite</dt><dd>Jevals 0.1.0</dd></div><div><dt>Release</dt><dd>2026-09-18</dd></div><div><dt>Tasks</dt><dd>3 × 300 items</dd></div><div><dt>Intervals</dt><dd>95%, 2,000 bootstrap resamples</dd></div><div class="systems"><dt>Systems</dt><dd><div class="sysgrp"><p class="sg-h"><i class="mk jev"></i>System One model · published logs</p><p>Jev (TypeSafe)</p></div><div class="sysgrp"><p class="sg-h"><i class="mk loc"></i>Local models · LM Studio</p><p>Qwen3.5 4B, MiniCPM5 2B, Qwen3 0.6B<span class="sg-sub">MLX 8-bit · Apple Silicon Mac</span></p><p>GLM 4.7 Flash<span class="sg-sub">GGUF Q4_K_M · second machine via LM Link</span></p></div></dd></div></dl>
+  
+</header>
+
+<section class="section" id="speed-score">
+  <div class="head">
+    <p class="kicker">Fig. 1 · Speed vs score</p>
+    <h2>Speed and score, every model against Jev</h2>
+    <p>Decision Score against median time per decision on three tasks: biomedical yes/no questions (PubMedQA), helpfulness ratings (HelpSteer2) and banking intents (Banking77). The Decision Score rates the probabilities: 0 matches the label prior, a baseline that only knows how often each answer occurs, and 100 is perfect. A point above and to the left of Jev would score higher than Jev and answer faster.</p>
+  </div>
+  <figure class="panel">
+    <div class="legend">
+      <span><i class="mk jev"></i>Jev</span>
+      <span><i class="mk loc"></i>Local model · readout</span>
+      <span><i class="mk hollow"></i>Local model · verbalized</span>
+      <span><i class="mk ref"></i>Reference LLM · published logs</span>
+    </div>
+    <div class="scs" id="chart-speed-score"></div>
+    <figcaption>Up is a higher Decision Score, where 0 is the label prior. Left is a shorter median time per decision, on a log scale. Gray points are six reference LLMs from Jevals’ published logs, shown for context only; LLM-based-system-one did not run them. Published and local timings come from different conditions (Fig. 4), so read horizontal gaps between them as indicative only. GLM 4.7 Flash ran on the second machine via LM Link, so those timings are not comparable with the models on the Apple Silicon Mac.</figcaption>
+  </figure>
+  <ul class="notes"><li>No system lands above and to the left of Jev on any task: none of the systems with a shorter median time than Jev scores higher.</li></ul>
+</section>
+
+<section class="section" id="findings">
+  <div class="head">
+    <p class="kicker">Summary</p>
+    <h2>What the report finds</h2>
+  </div>
+  <ul class="findings"><li><b>Jev beats every local model on every task.</b><span>Jev scores 69.0 on PubMedQA, 9.2 on HelpSteer2 and 67.8 on Banking77. The best local results are 45.3 on PubMedQA (Qwen3.5 4B readout), 4.8 on HelpSteer2 (GLM 4.7 Flash readout) and 51.9 on Banking77 (Qwen3.5 4B readout).</span></li><li><b>Only GLM 4.7 Flash readout clearly beats the baseline on HelpSteer2.</b><span>Jev scores 9.2 there, and its 95% interval (−4.5 to 21.4) includes zero. The interval of GLM 4.7 Flash readout (0.2 to 9.1) lies entirely above zero.</span></li><li><b>Higher accuracy can hide worse probabilities.</b><span>On HelpSteer2, Qwen3.5 4B readout has the highest accuracy (44.1%) and a Decision Score of −11.4. Jev has 41.3% accuracy and scores 9.2.</span></li><li><b>Readout is not an automatic improvement.</b><span>It raises the score of Qwen3.5 4B and GLM 4.7 Flash on every task. For MiniCPM5 2B it lowers the score on HelpSteer2 and Banking77 while accuracy rises; for Qwen3 0.6B it lowers the score on Banking77.</span></li><li><b>Latency is not directly comparable.</b><span>Jev’s published median is 438–478 ms per decision. The local runs range from 54 ms to 4,185 ms, timed one request at a time, on two different machines.</span></li></ul>
+</section>
+
+<section class="section" id="quality">
+  <div class="head">
+    <p class="kicker">Fig. 2 · Decision quality</p>
+    <h2>Decision Score on each task</h2>
+    <p>Right of zero means lower loss than the label prior. The dashed blue line is Jev’s score; every local model lands to the left of it on every task.</p>
+  </div>
+  <figure class="panel">
+    <div class="legend">
+      <span><i class="mk jev"></i>Jev · native</span>
+      <span><i class="mk loc"></i>Local model · readout</span>
+      <span><i class="mk hollow"></i>Local model · verbalized</span>
+      <span><i class="key-ci"></i>95% interval</span>
+      <span><i class="key-ref"></i>Jev’s score</span>
+      <span><i class="key-wash"></i>Worse than the label prior</span>
+    </div>
+    <div id="chart-quality"></div>
+    <figcaption>Dots are point estimates, lines are 95% bootstrap intervals, on one scale from −100 to 100 for every task. Rows: Jev, then the local models by average Decision Score, readout first.</figcaption>
+  </figure>
+  <ul class="notes"><li>In points, Jev is ahead of the best local system by 23.7 on PubMedQA, 4.4 on HelpSteer2 and 15.9 on Banking77.</li><li>Counting only whole 95% intervals above zero as clearing the label prior, Qwen3.5 4B clears it on PubMedQA and Banking77, GLM 4.7 Flash on every task, MiniCPM5 2B only on Banking77 and Qwen3 0.6B on no task.</li><li>Jev’s own 95% interval includes zero on HelpSteer2 (−4.5 to 21.4).</li><li>GLM 4.7 Flash readout and MiniCPM5 2B readout put probability on only 6.1 and 9.7 of the 77 intents on Banking77 on average, against 76.8 for Qwen3 0.6B readout. The readout sees at most the 10 most likely tokens and gives every other answer probability 0, so these scores are not like-for-like with the other readout rows.</li></ul>
+</section>
+
+<section class="section" id="readout">
+  <div class="head">
+    <p class="kicker">Fig. 3 · Probability method</p>
+    <h2>Readout versus verbalized on the local models</h2>
+    <p>LLM-based-system-one runs every local model two ways. Verbalized: the model writes its probabilities as JSON. Readout: the probabilities come from the model’s next-token log probabilities. Each row is a model-and-method combination, so the chart does not isolate model size or architecture.</p>
+  </div>
+  <figure class="panel">
+    <div class="legend">
+      <span><i class="mk hollow"></i>Verbalized</span>
+      <span><i class="mk loc"></i>Readout</span>
+      <span><span class="dl up">▲</span>Higher with readout</span>
+      <span><span class="dl down">▼</span>Lower with readout</span>
+    </div>
+    <div id="chart-readout"></div>
+    <figcaption>Each line runs from the verbalized score to the readout score. Changes are differences between point estimates, readout minus verbalized; accuracy changes are in percentage points. Readout returned a valid answer for every model on every task.</figcaption>
+  </figure>
+  <ul class="notes"><li>Qwen3.5 4B improves with readout on every task: 19.0 to 45.3 on PubMedQA, −37.4 to −11.4 on HelpSteer2 and 44.9 to 51.9 on Banking77.</li><li>GLM 4.7 Flash improves with readout on every task: 6.9 to 21.6 on PubMedQA, −38.2 to 4.8 on HelpSteer2 and 29.1 to 43.2 on Banking77.</li><li>MiniCPM5 2B improves with readout on PubMedQA but drops on HelpSteer2 (−39.3 to −60.7, while accuracy rises from 31.0% to 41.3%) and Banking77 (26.9 to 23.5, while accuracy rises from 46.9% to 51.5%).</li><li>Qwen3 0.6B improves with readout on PubMedQA and HelpSteer2 but drops on Banking77 (−2.8 to −33.6). It stays below zero on every task with both methods.</li><li>Only 57.5% of Qwen3 0.6B’s verbalized Banking77 answers met the format.</li></ul>
+</section>
+
+<section class="section" id="latency">
+  <div class="head">
+    <p class="kicker">Fig. 4 · Latency</p>
+    <h2>Time per decision</h2>
+    <p>Jev’s times come from Jevals’ published logs, measured over the internet at concurrency 4. LLM-based-system-one timed the local runs one request at a time, on two machines. The conditions differ, so this is not a controlled speed comparison.</p>
+  </div>
+  <figure class="panel">
+    <div class="legend">
+      <span><i class="mk jev"></i>Jev</span>
+      <span><i class="mk loc"></i>Local · readout</span>
+      <span><i class="mk hollow"></i>Local · verbalized</span>
+      <span><i class="key-cap"></i>Median, line to p95</span>
+      <span><i class="key-ref"></i>Jev’s median</span>
+    </div>
+    <div id="chart-latency"></div>
+    <figcaption>Dot: median (p50). Line: extends to the 95th percentile (p95). Log scale, so equal distances are equal ratios. LLM-based-system-one did not remeasure Jev’s latency.</figcaption>
+  </figure>
+  <ul class="notes"><li>Jev’s published medians are 438–478 ms and its p95 653–693 ms. These describe Jevals’ measurement conditions, not a service guarantee.</li><li>On the Apple Silicon Mac, local medians are 370–4,185 ms.</li><li>On the second machine via LM Link, local medians are 54–669 ms.</li><li>Qwen3.5 4B readout takes a median 4,185 ms on Banking77, 2.2 times its verbalized median (1,924 ms).</li><li>GLM 4.7 Flash ran on the second machine via LM Link, so those timings are not comparable with the models on the Apple Silicon Mac.</li></ul>
+</section>
+
+<section class="section" id="method">
+  <div class="head">
+    <p class="kicker">Method</p>
+    <h2>How to read the benchmark</h2>
+    <p>Each task gives a system a question and a fixed set of allowed answers. The system picks one and puts a probability on every allowed answer. The benchmark scores the whole set of probabilities, not only the pick.</p>
+  </div>
+
+  <div class="tasks"><article class="task"><h3>PubMedQA</h3><p class="type">yes / no</p><p>Answer a biomedical research question yes or no from passages of a PubMed abstract. The system states the probability of yes.</p><ul class="facts"><li>2 answers</li><li>Loss: Brier score</li><li>Label prior accuracy: 62.0%</li></ul></article><article class="task"><h3>HelpSteer2</h3><p class="type">score</p><p>Rate how helpful a response is, from 0 (not helpful at all) to 4 (extremely helpful).</p><ul class="facts"><li>5 levels</li><li>Loss: ranked probability score</li><li>Label prior accuracy: 41.7%</li></ul></article><article class="task"><h3>Banking77</h3><p class="type">choice</p><p>Name the intent behind a bank customer’s message, such as card_arrival or cancel_transfer.</p><ul class="facts"><li>77 intents</li><li>Loss: Brier score</li><li>Label prior accuracy: 1.3%</li></ul></article></div>
+  <p class="small">Label prior accuracy is what always picking the most common answer achieves. On Banking77 the intents are spread so evenly that this reaches only 1.3%.</p>
+
+  <div class="explain">
+    <div class="stack">
+      <h3>Where the probabilities come from</h3>
+      <dl class="sources">
+        <div><dt><i class="mk jev"></i>native</dt><dd>Jev returns a probability for every allowed answer. Taken from Jevals’ published logs.</dd></div>
+        <div><dt><i class="mk hollow"></i>verbalized</dt><dd>The model writes its probabilities out as JSON. One of the two ways LLM-based-system-one runs each local model.</dd></div>
+        <div><dt><i class="mk loc"></i>readout</dt><dd>LLM-based-system-one reads the probabilities from the model’s next-token log probabilities. The model writes no text. Local models only.</dd></div>
+        <div><dt><i class="mk prior"></i>base rates</dt><dd>The label prior: how often each answer occurs among the evaluated items. It never reads the question.</dd></div>
+      </dl>
+      <p class="small">Color shows who produced the answers: blue for Jev, orange for LLM-based-system-one’s local models. An open orange dot is a local model with verbalized probabilities.</p>
+    </div>
+
+    <div class="ds-box">
+      <h3>Decision Score, the headline metric</h3>
+      <p class="formula"><b>Decision Score</b> = 100 × (1 − system loss ÷ label-prior loss)</p>
+      <p class="small">0 means the same loss as the label prior and 100 means zero loss. Below 0 is worse than the label prior, with no lower bound. Loss is the mean Brier score on yes/no and choice tasks and the mean ranked probability score on score tasks, where a neighboring rating costs less than a distant one.</p>
+      <div class="ds-scale" role="img" aria-label="Decision Score scale from minus 100 to 100 with the label prior at 0.">
+        <div class="ds-track"><i class="ds-zero"></i><span class="v" style="left:16.7%">−66.6</span><span class="v" style="left:84.5%">69.0</span><i class="m loc hollow" style="left:16.7%"></i><i class="m jev" style="left:84.5%"></i></div>
+        <div class="ds-ticks">
+          <span style="left:0">−100</span>
+          <span style="left:25%;transform:translateX(-50%)">−50</span>
+          <span style="left:50%;transform:translateX(-50%)">0</span>
+          <span style="left:75%;transform:translateX(-50%)">50</span>
+          <span style="left:100%;transform:translateX(-100%)">100</span>
+        </div>
+        <div class="ds-zones"><span>← worse than the label prior</span><span>better than the label prior →</span></div>
+      </div>
+      <p class="small">Examples from PubMedQA: Jev at 69.0 (blue) and MiniCPM5 2B verbalized at −66.6 (open orange).</p>
+    </div>
+  </div>
+
+  <dl class="glossary">
+    <div><dt>95% interval</dt><dd>LLM-based-system-one’s item-cluster bootstrap: 2,000 resamples of whole items, seed 20260918. Not checked against the published board.</dd></div>
+    <div><dt>Accuracy</dt><dd>How often the most probable answer is the correct one.</dd></div>
+    <div><dt>ECE</dt><dd>Expected calibration error in percentage points: the gap between stated confidence and observed accuracy across 10 confidence bins. Lower is better.</dd></div>
+    <div><dt>Valid</dt><dd>Share of outputs in the required answer format. An invalid output is scored as an even spread over the allowed answers.</dd></div>
+    <div><dt>p50 / p95</dt><dd>Median and 95th-percentile time per decision, in milliseconds.</dd></div>
+    <div><dt>Decisions/s</dt><dd>Decisions divided by their summed decision time. Not throughput under concurrent load.</dd></div>
+  </dl>
+</section>
+
+<section class="section" id="other-metrics">
+  <div class="head">
+    <p class="kicker">Fig. 5 · Other metrics</p>
+    <h2>Accuracy and calibration can disagree with the score</h2>
+    <p>Accuracy only counts whether the top answer is right, and ECE measures one property of the probabilities. The Decision Score rates the whole distribution, so a system can look good on one and poor on the other.</p>
+  </div>
+  <div class="pairs">
+    <figure class="panel pair">
+      <h3>HelpSteer2: equal accuracy, different scores</h3>
+      <div id="chart-accuracy"></div>
+      <figcaption>Jev and MiniCPM5 2B readout pick the right answer equally often (41.3%) but score 9.2 and −60.7. The label prior, which never reads the question, gets 41.7%.</figcaption>
+    </figure>
+    <figure class="panel pair">
+      <h3>HelpSteer2: similar calibration error, different scores</h3>
+      <div id="chart-calibration"></div>
+      <figcaption>Qwen3.5 4B readout and Qwen3 0.6B verbalized have almost the same calibration error (29.3 and 28.8) but score −11.4 and −60.8. Calibration error is one useful view of the probabilities; it does not capture everything the Decision Score rewards.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="limits">
+  <div class="head">
+    <p class="kicker">Interpretation limits</p>
+    <h2>What these results do not show</h2>
+  </div>
+  <ul class="limits">
+    <li><b>Rescored, not rerun</b>LLM-based-system-one did not call Jev. Jev’s rows rescore Jevals’ published answer logs with LLM-based-system-one’s scoring code. Decision Score, accuracy, loss, ECE, repeat and order flip rates and p50/p95 latency all matched the published board within rounding. That verifies the rescoring, not Jev’s original inference runs.</li>
+    <li><b>Own intervals</b>The 95% intervals come from LLM-based-system-one’s item-cluster bootstrap. They are not board-checked and can differ from the published intervals.</li>
+    <li><b>Point estimates, not significance</b>Rankings of point estimates do not establish significant differences. Overlapping intervals establish neither a difference nor equivalence.</li>
+    <li><b>No controlled speed test</b>Published and local latencies come from different execution conditions. The local models ran on two machines: Qwen3.5 4B, MiniCPM5 2B and Qwen3 0.6B on the Apple Silicon Mac; GLM 4.7 Flash on the second machine via LM Link. Decisions/s divides decisions by summed decision time and is not throughput under concurrent load.</li>
+    <li><b>Not measured</b>Cost, energy use and privacy compliance. The benchmark establishes no advantage on any of them.</li>
+    <li><b>Combinations, not causes</b>Each row is a complete model-and-method combination. The results describe these models and configurations and set no minimum model size for decision tasks.</li>
+  </ul>
+  <p class="small">Running locally gives control over where inference happens and which model is served, at the cost of managing the hardware and accepting the measured quality and latency. A deployment decision should still check the actual task’s probabilities, error consequences and latency requirements.</p>
+</section>
+
+<section class="section" id="data">
+  <div class="head">
+    <p class="kicker">Data</p>
+    <h2>Full results</h2>
+    <p>The report’s values for Jev, the local models and the label prior, best Decision Score first.</p>
+  </div>
+  <div class="panel"><div class="tables" id="tables"></div></div>
+</section>
+
+<footer class="colophon"><p>Generated by <code>just report</code> together with <code>reports/benchmark/report.md</code>.</p><p>Benchmark data: Jevals (<a href="https://jevals.com" target="_blank" rel="noopener">jevals.com</a>), release 2026-09-18, suite 0.1.0, CC-BY-4.0. Item text: Banking77 (CC BY 4.0, PolyAI), HelpSteer2 (CC BY 4.0, NVIDIA), PubMedQA (MIT). Answer logs and board from <a href="https://github.com/Jevals/jevals-data" target="_blank" rel="noopener"><code>Jevals/jevals-data</code></a> at commit <a href="https://github.com/Jevals/jevals-data/tree/21bb47b72814cf661539b313844d2d2e26166e54" target="_blank" rel="noopener"><code>21bb47b72814cf661539b313844d2d2e26166e54</code></a>.</p></footer>
+
+</main>
+
+<script type="application/json" id="report-data">{"tasks": [{"id": "pubmedqa", "name": "PubMedQA", "type": "yes / no"}, {"id": "helpsteer2", "name": "HelpSteer2", "type": "score, 0–4"}, {"id": "banking77", "name": "Banking77", "type": "choice of 77"}], "systems": {"gemini-3.8-flash": {"name": "Gemini 3.8 Flash", "method": "verbalized", "kind": "ref", "hollow": false}, "jev": {"name": "Jev", "method": "native", "kind": "jev", "hollow": false}, "qwen3.8-flash": {"name": "Qwen3.8 Flash", "method": "verbalized", "kind": "ref", "hollow": false}, "glm-5.3": {"name": "GLM-5.3", "method": "verbalized", "kind": "ref", "hollow": false}, "mistral-medium-3.5": {"name": "Mistral Medium 3.5", "method": "verbalized", "kind": "ref", "hollow": false}, "mercury-2.5": {"name": "Mercury 2.5", "method": "verbalized", "kind": "ref", "hollow": false}, "deepseek-v4.1-flash": {"name": "DeepSeek V4.1 Flash", "method": "verbalized", "kind": "ref", "hollow": false}, "qwen3.5-4b-readout": {"name": "Qwen3.5 4B", "method": "readout", "kind": "loc", "hollow": false}, "glm-4.7-flash-readout": {"name": "GLM 4.7 Flash", "method": "readout", "kind": "loc", "hollow": false}, "qwen3.5-4b-verbalized": {"name": "Qwen3.5 4B", "method": "verbalized", "kind": "loc", "hollow": true}, "glm-4.7-flash-verbalized": {"name": "GLM 4.7 Flash", "method": "verbalized", "kind": "loc", "hollow": true}, "label-prior": {"name": "Label prior", "method": "base rates", "kind": "prior", "hollow": false}, "minicpm5-2b-readout": {"name": "MiniCPM5 2B", "method": "readout", "kind": "loc", "hollow": false}, "qwen3-0.6b-readout": {"name": "Qwen3 0.6B", "method": "readout", "kind": "loc", "hollow": false}, "qwen3-0.6b-verbalized": {"name": "Qwen3 0.6B", "method": "verbalized", "kind": "loc", "hollow": true}, "minicpm5-2b-verbalized": {"name": "MiniCPM5 2B", "method": "verbalized", "kind": "loc", "hollow": true}}, "results": {"pubmedqa": {"gemini-3.8-flash": {"ds": 73.0, "lo": 63.2, "hi": 81.9, "acc": 92.5, "ece": 2.0, "valid": 100.0, "p50": 1854.0, "p95": 5538.0, "dps": 0.41}, "jev": {"ds": 69.0, "lo": 60.5, "hi": 76.7, "acc": 91.3, "ece": 5.0, "valid": 100.0, "p50": 438.0, "p95": 653.0, "dps": 2.02}, "qwen3.8-flash": {"ds": 62.4, "lo": 51.6, "hi": 73.0, "acc": 89.7, "ece": 2.5, "valid": 100.0, "p50": 1088.0, "p95": 3515.0, "dps": 0.69}, "glm-5.3": {"ds": 60.6, "lo": 50.4, "hi": 69.7, "acc": 88.7, "ece": 2.0, "valid": 100.0, "p50": 1757.0, "p95": 2878.0, "dps": 0.53}, "mistral-medium-3.5": {"ds": 58.0, "lo": 45.9, "hi": 69.4, "acc": 88.8, "ece": 5.2, "valid": 100.0, "p50": 533.0, "p95": 917.0, "dps": 1.72}, "mercury-2.5": {"ds": 55.7, "lo": 45.1, "hi": 65.6, "acc": 87.1, "ece": 4.7, "valid": 100.0, "p50": 584.0, "p95": 1036.0, "dps": 1.51}, "deepseek-v4.1-flash": {"ds": 47.5, "lo": 35.0, "hi": 59.1, "acc": 83.7, "ece": 6.2, "valid": 100.0, "p50": 838.0, "p95": 1123.0, "dps": 1.16}, "qwen3.5-4b-readout": {"ds": 45.3, "lo": 35.9, "hi": 54.6, "acc": 82.1, "ece": 4.9, "valid": 100.0, "p50": 526.0, "p95": 1043.0, "dps": 1.8}, "glm-4.7-flash-readout": {"ds": 21.6, "lo": 15.1, "hi": 27.2, "acc": 79.0, "ece": 19.1, "valid": 100.0, "p50": 58.0, "p95": 213.0, "dps": 11.51}, "qwen3.5-4b-verbalized": {"ds": 19.0, "lo": 4.3, "hi": 33.8, "acc": 68.1, "ece": 17.0, "valid": 100.0, "p50": 1011.0, "p95": 1755.0, "dps": 0.92}, "glm-4.7-flash-verbalized": {"ds": 6.9, "lo": -5.0, "hi": 18.5, "acc": 74.3, "ece": 18.9, "valid": 99.9, "p50": 220.0, "p95": 2069.0, "dps": 2.27}, "label-prior": {"ds": 0.0, "lo": 0.0, "hi": 0.0, "acc": 62.0, "ece": null, "valid": 100.0, "p50": null, "p95": null, "dps": null}, "minicpm5-2b-readout": {"ds": -3.0, "lo": -14.0, "hi": 9.2, "acc": 66.0, "ece": 22.6, "valid": 100.0, "p50": 480.0, "p95": 788.0, "dps": 1.92}, "qwen3-0.6b-readout": {"ds": -28.8, "lo": -40.0, "hi": -16.2, "acc": 62.3, "ece": 30.4, "valid": 100.0, "p50": 415.0, "p95": 585.0, "dps": 2.35}, "qwen3-0.6b-verbalized": {"ds": -29.9, "lo": -45.4, "hi": -15.8, "acc": 56.9, "ece": 28.1, "valid": 100.0, "p50": 833.0, "p95": 1169.0, "dps": 1.2}, "minicpm5-2b-verbalized": {"ds": -66.6, "lo": -93.7, "hi": -43.0, "acc": 50.5, "ece": 40.5, "valid": 100.0, "p50": 1048.0, "p95": 1486.0, "dps": 0.92}}, "helpsteer2": {"jev": {"ds": 9.2, "lo": -4.5, "hi": 21.4, "acc": 41.3, "ece": 19.7, "valid": 100.0, "p50": 478.0, "p95": 670.0, "dps": 1.99}, "glm-5.3": {"ds": 7.8, "lo": -5.4, "hi": 19.5, "acc": 43.0, "ece": 12.9, "valid": 100.0, "p50": 2211.0, "p95": 3631.0, "dps": 0.43}, "glm-4.7-flash-readout": {"ds": 4.8, "lo": 0.2, "hi": 9.1, "acc": 38.3, "ece": 9.7, "valid": 100.0, "p50": 54.0, "p95": 332.0, "dps": 10.2}, "gemini-3.8-flash": {"ds": 4.6, "lo": -12.6, "hi": 20.2, "acc": 42.4, "ece": 22.6, "valid": 100.0, "p50": 1887.0, "p95": 3979.0, "dps": 0.47}, "label-prior": {"ds": 0.0, "lo": 0.0, "hi": 0.0, "acc": 41.7, "ece": null, "valid": 100.0, "p50": null, "p95": null, "dps": null}, "qwen3.8-flash": {"ds": -1.4, "lo": -16.1, "hi": 12.1, "acc": 36.1, "ece": 25.8, "valid": 100.0, "p50": 1422.0, "p95": 2638.0, "dps": 0.58}, "mercury-2.5": {"ds": -5.5, "lo": -16.2, "hi": 4.7, "acc": 41.7, "ece": 31.5, "valid": 100.0, "p50": 618.0, "p95": 1164.0, "dps": 1.42}, "qwen3.5-4b-readout": {"ds": -11.4, "lo": -25.1, "hi": 1.6, "acc": 44.1, "ece": 29.3, "valid": 100.0, "p50": 370.0, "p95": 1282.0, "dps": 2.13}, "mistral-medium-3.5": {"ds": -13.7, "lo": -27.8, "hi": -0.2, "acc": 43.9, "ece": 33.6, "valid": 100.0, "p50": 706.0, "p95": 1178.0, "dps": 1.31}, "deepseek-v4.1-flash": {"ds": -19.0, "lo": -37.6, "hi": -3.0, "acc": 34.7, "ece": 33.5, "valid": 100.0, "p50": 912.0, "p95": 1203.0, "dps": 1.07}, "qwen3.5-4b-verbalized": {"ds": -37.4, "lo": -57.7, "hi": -19.0, "acc": 33.5, "ece": 30.5, "valid": 99.9, "p50": 1491.0, "p95": 2852.0, "dps": 0.62}, "glm-4.7-flash-verbalized": {"ds": -38.2, "lo": -44.5, "hi": -31.9, "acc": 37.7, "ece": 45.6, "valid": 100.0, "p50": 421.0, "p95": 1612.0, "dps": 1.8}, "minicpm5-2b-verbalized": {"ds": -39.3, "lo": -44.6, "hi": -33.9, "acc": 31.0, "ece": 53.1, "valid": 98.9, "p50": 932.0, "p95": 1820.0, "dps": 0.94}, "qwen3-0.6b-readout": {"ds": -40.5, "lo": -46.1, "hi": -35.0, "acc": 30.0, "ece": 66.2, "valid": 100.0, "p50": 404.0, "p95": 635.0, "dps": 2.54}, "minicpm5-2b-readout": {"ds": -60.7, "lo": -71.7, "hi": -49.2, "acc": 41.3, "ece": 55.0, "valid": 100.0, "p50": 414.0, "p95": 887.0, "dps": 2.11}, "qwen3-0.6b-verbalized": {"ds": -60.8, "lo": -77.0, "hi": -47.1, "acc": 16.2, "ece": 28.8, "valid": 99.3, "p50": 1084.0, "p95": 1673.0, "dps": 0.92}}, "banking77": {"gemini-3.8-flash": {"ds": 74.1, "lo": 68.0, "hi": 80.1, "acc": 84.6, "ece": 3.2, "valid": 100.0, "p50": 1636.0, "p95": 3938.0, "dps": 0.51}, "jev": {"ds": 67.8, "lo": 61.0, "hi": 74.4, "acc": 79.7, "ece": 9.8, "valid": 100.0, "p50": 467.0, "p95": 693.0, "dps": 1.96}, "glm-5.3": {"ds": 66.8, "lo": 61.9, "hi": 72.0, "acc": 78.9, "ece": 6.2, "valid": 100.0, "p50": 2110.0, "p95": 3186.0, "dps": 0.45}, "deepseek-v4.1-flash": {"ds": 63.9, "lo": 58.5, "hi": 69.4, "acc": 75.9, "ece": 2.8, "valid": 99.9, "p50": 999.0, "p95": 1309.0, "dps": 0.97}, "qwen3.8-flash": {"ds": 62.4, "lo": 56.1, "hi": 69.5, "acc": 76.8, "ece": 9.5, "valid": 99.9, "p50": 1713.0, "p95": 3105.0, "dps": 0.51}, "mistral-medium-3.5": {"ds": 59.5, "lo": 54.1, "hi": 64.8, "acc": 74.5, "ece": 8.1, "valid": 99.5, "p50": 936.0, "p95": 1444.0, "dps": 1.0}, "mercury-2.5": {"ds": 54.0, "lo": 47.8, "hi": 60.7, "acc": 70.3, "ece": 10.4, "valid": 99.7, "p50": 638.0, "p95": 1478.0, "dps": 1.26}, "qwen3.5-4b-readout": {"ds": 51.9, "lo": 44.9, "hi": 59.0, "acc": 69.9, "ece": 16.7, "valid": 100.0, "p50": 4185.0, "p95": 4605.0, "dps": 0.24}, "qwen3.5-4b-verbalized": {"ds": 44.9, "lo": 40.3, "hi": 49.7, "acc": 67.5, "ece": 15.3, "valid": 99.3, "p50": 1924.0, "p95": 2532.0, "dps": 0.53}, "glm-4.7-flash-readout": {"ds": 43.2, "lo": 37.0, "hi": 49.8, "acc": 61.5, "ece": 12.2, "valid": 100.0, "p50": 303.0, "p95": 375.0, "dps": 3.68}, "glm-4.7-flash-verbalized": {"ds": 29.1, "lo": 21.8, "hi": 36.1, "acc": 57.2, "ece": 26.2, "valid": 99.2, "p50": 669.0, "p95": 2563.0, "dps": 1.14}, "minicpm5-2b-verbalized": {"ds": 26.9, "lo": 21.6, "hi": 32.5, "acc": 46.9, "ece": 12.1, "valid": 98.0, "p50": 1536.0, "p95": 2272.0, "dps": 0.64}, "minicpm5-2b-readout": {"ds": 23.5, "lo": 16.5, "hi": 31.1, "acc": 51.5, "ece": 28.6, "valid": 100.0, "p50": 586.0, "p95": 814.0, "dps": 1.8}, "label-prior": {"ds": 0.0, "lo": 0.0, "hi": 0.0, "acc": 1.3, "ece": null, "valid": 100.0, "p50": null, "p95": null, "dps": null}, "qwen3-0.6b-verbalized": {"ds": -2.8, "lo": -5.5, "hi": -0.2, "acc": 16.7, "ece": 20.1, "valid": 57.5, "p50": 971.0, "p95": 2848.0, "dps": 0.55}, "qwen3-0.6b-readout": {"ds": -33.6, "lo": -36.4, "hi": -30.7, "acc": 9.2, "ece": 54.7, "valid": 100.0, "p50": 1418.0, "p95": 1894.0, "dps": 0.74}}}, "local": ["qwen3.5-4b-readout", "qwen3.5-4b-verbalized", "glm-4.7-flash-readout", "glm-4.7-flash-verbalized", "minicpm5-2b-readout", "minicpm5-2b-verbalized", "qwen3-0.6b-readout", "qwen3-0.6b-verbalized"], "reference": ["gemini-3.8-flash", "glm-5.3", "qwen3.8-flash", "mercury-2.5", "mistral-medium-3.5", "deepseek-v4.1-flash"], "models": [{"name": "Qwen3.5 4B", "readout": "qwen3.5-4b-readout", "verbalized": "qwen3.5-4b-verbalized"}, {"name": "GLM 4.7 Flash", "readout": "glm-4.7-flash-readout", "verbalized": "glm-4.7-flash-verbalized"}, {"name": "MiniCPM5 2B", "readout": "minicpm5-2b-readout", "verbalized": "minicpm5-2b-verbalized"}, {"name": "Qwen3 0.6B", "readout": "qwen3-0.6b-readout", "verbalized": "qwen3-0.6b-verbalized"}], "machines": [{"name": "Apple Silicon Mac", "ids": ["qwen3.5-4b-readout", "qwen3.5-4b-verbalized", "minicpm5-2b-readout", "minicpm5-2b-verbalized", "qwen3-0.6b-readout", "qwen3-0.6b-verbalized"]}, {"name": "second machine via LM Link", "ids": ["glm-4.7-flash-readout", "glm-4.7-flash-verbalized"]}], "table": {"pubmedqa": ["jev", "qwen3.5-4b-readout", "glm-4.7-flash-readout", "qwen3.5-4b-verbalized", "glm-4.7-flash-verbalized", "label-prior", "minicpm5-2b-readout", "qwen3-0.6b-readout", "qwen3-0.6b-verbalized", "minicpm5-2b-verbalized"], "helpsteer2": ["jev", "glm-4.7-flash-readout", "label-prior", "qwen3.5-4b-readout", "qwen3.5-4b-verbalized", "glm-4.7-flash-verbalized", "minicpm5-2b-verbalized", "qwen3-0.6b-readout", "minicpm5-2b-readout", "qwen3-0.6b-verbalized"], "banking77": ["jev", "qwen3.5-4b-readout", "qwen3.5-4b-verbalized", "glm-4.7-flash-readout", "glm-4.7-flash-verbalized", "minicpm5-2b-verbalized", "minicpm5-2b-readout", "label-prior", "qwen3-0.6b-verbalized", "qwen3-0.6b-readout"]}, "examples": {"accuracy": {"task": "helpsteer2", "ids": ["jev", "minicpm5-2b-readout", "label-prior"]}, "calibration": {"task": "helpsteer2", "ids": ["qwen3.5-4b-readout", "qwen3-0.6b-verbalized"]}}}</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById("report-data").textContent);
+  const MINUS = "−";
+  const f1 = v => (v < 0 ? MINUS : "") + Math.abs(v).toFixed(1);
+  const signed = v => (v > 0 ? "+" : v < 0 ? MINUS : "") + Math.abs(v).toFixed(1);
+  const pct = v => v.toFixed(1) + "%";
+  const int = v => Math.round(v).toLocaleString("en-US");
+  const css = v => v.toFixed(3);
+  const clamp = v => Math.max(0, Math.min(100, v));
+
+  const TASKS = DATA.tasks;
+  const SYSTEMS = DATA.systems;
+  const R = DATA.results;
+  const LOCAL = DATA.local;
+  const REFERENCE = DATA.reference;
+
+  const lin = (d0, d1) => v => clamp(((v - d0) / (d1 - d0)) * 100);
+  const logScale = (d0, d1) => {
+    const a = Math.log10(d0), b = Math.log10(d1);
+    return v => clamp(((Math.log10(v) - a) / (b - a)) * 100);
+  };
+  // Time axes use 1-2-5 steps in milliseconds; the range pads the data by 15% on each side.
+  const STEPS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+  const logDomain = values => {
+    const d0 = STEPS.filter(s => s <= Math.min(...values) * 0.85).pop();
+    const d1 = STEPS.find(s => s >= Math.max(...values) * 1.15);
+    if (d0 === undefined || d1 === undefined) throw new Error("Decision times fall outside the time axis steps");
+    return [d0, d1];
+  };
+  // Narrow task columns get powers of ten only; the full-width scatter also gets the 5s between them.
+  const logTicks = ([d0, d1], dense) => {
+    const inside = STEPS.filter(s => s > d0 && s < d1);
+    const powers = inside.filter(s => /^10*$/.test(String(s)));
+    const shown = !dense && powers.length >= 2 ? powers : inside.filter(s => /^[15]0*$/.test(String(s)));
+    return shown.map(v => ({ v, label: v < 1000 ? `${v} ms` : `${v / 1000} s` }));
+  };
+  const timesOf = (ids, keys) => TASKS.flatMap(t => ids.flatMap(id => keys.map(k => R[t.id][id][k])));
+
+  const glyph = s => `<i class="mk ${s.kind}${s.hollow ? " hollow" : ""}"></i>`;
+  const dot = (s, x) => `<i class="m ${s.kind}${s.hollow ? " hollow" : ""}" style="left:${css(x)}%"></i>`;
+  const at = (x, align) =>
+    align === "start" ? `left:${css(x)}%`
+    : align === "end" ? `left:${css(x)}%;transform:translateX(-100%)`
+    : `left:${css(x)}%;transform:translateX(-50%)`;
+  const edge = x => (x < 6 ? "start" : x > 94 ? "end" : "mid");
+  const autoAlign = x => (x < 18 ? "start" : x > 82 ? "end" : "mid");
+  const axis = (ticks, x) => ticks.map(t => {
+    const p = x(t.v);
+    return `<i style="left:${css(p)}%"></i><span style="${at(p, t.align || edge(p))}">${t.label}</span>`;
+  }).join("");
+  const labelCell = (s, row, extra = "") =>
+    `<div class="fx-label${extra}" style="grid-row:${row};grid-column:1 / 3">${glyph(s)}<span>${s.name}</span>${s.kind === "loc" ? `<span class="meth">${s.method}</span>` : ""}</div>`;
+
+  // Systems as rows against one shared scale, one plot column per task.
+  function rowGrid(tasks, cfg, narrow) {
+    const x = cfg.scale;
+    const col = i => 3 + i * 2;
+    const template = narrow
+      ? "minmax(6.5rem, 8.5rem) 10px minmax(0, 1fr)"
+      : "minmax(12rem, 13rem) 14px " + tasks.map(() => "minmax(0, 1fr)").join(" 20px ");
+    const rows = ["auto", "22px"];
+    const back = [], front = [];
+    tasks.forEach((t, i) => {
+      front.push(`<div class="fx-head" style="grid-row:1;grid-column:${narrow ? "1 / -1" : col(i)}"><span class="fx-task">${t.name}</span><span class="fx-type">${t.type}</span></div>`);
+      const v = x(cfg.ref.value(t.id));
+      front.push(`<div class="fx-reflab" style="grid-row:2;grid-column:${col(i)}"><span style="${at(v, autoAlign(v))}">${cfg.ref.label(t.id)}</span></div>`);
+    });
+    let r = 3;
+    const first = r;
+    cfg.groups.forEach(g => {
+      rows.push(narrow ? "minmax(34px, auto)" : "42px");
+      front.push(`<div class="fx-rule" style="grid-row:${r};grid-column:1 / -1"></div>`);
+      front.push(`<div class="fx-group" style="grid-row:${r};grid-column:${narrow ? "1 / -1" : "1 / 3"}">${g.label}</div>`);
+      r++;
+      g.ids.forEach(id => {
+        const s = SYSTEMS[id];
+        rows.push(narrow ? "minmax(30px, auto)" : "28px");
+        if (id === "jev") back.push(`<div class="fx-band" style="grid-row:${r};grid-column:1 / -1"></div>`);
+        front.push(labelCell(s, r, id === "jev" ? " is-jev" : ""));
+        tasks.forEach((t, i) => front.push(`<div class="fx-plot" style="grid-row:${r};grid-column:${col(i)}">${cfg.mark(R[t.id][id], s, x)}</div>`));
+        r++;
+      });
+    });
+    tasks.forEach((t, i) => {
+      let layer = "";
+      if (cfg.wash) layer += `<i class="wash" style="left:${css(x(cfg.wash[0]))}%;width:${css(x(cfg.wash[1]) - x(cfg.wash[0]))}%"></i>`;
+      cfg.grid.forEach(v => { layer += `<i class="gl" style="left:${css(x(v))}%"></i>`; });
+      if (cfg.zero !== null) layer += `<i class="zero" style="left:${css(x(cfg.zero))}%"></i>`;
+      back.push(`<div class="fx-layer" style="grid-row:${first} / ${r};grid-column:${col(i)}">${layer}</div>`);
+      back.push(`<div class="fx-refline" style="grid-row:${first} / ${r};grid-column:${col(i)}"><i style="left:${css(x(cfg.ref.value(t.id)))}%"></i></div>`);
+    });
+    rows.push("auto");
+    front.push(`<div class="fx-axis-title" style="grid-row:${r};grid-column:1 / 3">${cfg.axisTitle}</div>`);
+    tasks.forEach((t, i) => front.push(`<div class="fx-axis" style="grid-row:${r};grid-column:${col(i)}">${axis(cfg.ticks, x)}</div>`));
+    return `<div class="fx${narrow ? " is-narrow" : ""}" style="grid-template-columns:${template};grid-template-rows:${rows.join(" ")}">${back.join("")}${front.join("")}</div>`;
+  }
+
+  function rowChart(el, cfg) {
+    el.innerHTML = `<div class="rc"><div class="rc-wide">${rowGrid(TASKS, cfg, false)}</div><div class="rc-narrow">${TASKS.map(t => rowGrid([t], cfg, true)).join("")}</div></div>`;
+  }
+
+  const QUALITY_GROUPS = [
+    { label: "Jev · published logs", ids: ["jev"] },
+    { label: "Local runs · LM Studio", ids: LOCAL },
+  ];
+  const LATENCY_GROUPS = [
+    { label: "Jev · Jevals, internet, concurrency 4", ids: ["jev"] },
+    ...DATA.machines.map(m => ({ label: `Local runs · ${m.name}`, ids: m.ids })),
+  ];
+  const DS_TICKS = [
+    { v: -100, label: "−100", align: "start" },
+    { v: -50, label: "−50" },
+    { v: 0, label: "0" },
+    { v: 50, label: "50" },
+    { v: 100, label: "100", align: "end" },
+  ];
+
+  rowChart(document.getElementById("chart-quality"), {
+    scale: lin(-100, 100),
+    grid: [-100, -50, 50, 100],
+    zero: 0,
+    wash: [-100, 0],
+    ticks: DS_TICKS,
+    axisTitle: "Decision Score",
+    groups: QUALITY_GROUPS,
+    ref: { value: t => R[t].jev.ds, label: t => `Jev ${f1(R[t].jev.ds)}` },
+    mark: (d, s, x) => `<i class="w ${s.kind}" style="left:${css(x(d.lo))}%;width:${css(x(d.hi) - x(d.lo))}%"></i>${dot(s, x(d.ds))}`,
+  });
+
+  const latencyDomain = logDomain(timesOf(["jev", ...LOCAL], ["p50", "p95"]));
+  const latencyTicks = logTicks(latencyDomain, false);
+  rowChart(document.getElementById("chart-latency"), {
+    scale: logScale(...latencyDomain),
+    grid: latencyTicks.map(t => t.v),
+    zero: null,
+    wash: null,
+    ticks: latencyTicks,
+    axisTitle: "Time per decision, log scale",
+    groups: LATENCY_GROUPS,
+    ref: { value: t => R[t].jev.p50, label: t => `Jev ${int(R[t].jev.p50)} ms` },
+    mark: (d, s, x) => `<i class="w ${s.kind}" style="left:${css(x(d.p50))}%;width:${css(x(d.p95) - x(d.p50))}%"></i><i class="cap ${s.kind}" style="left:${css(x(d.p95))}%"></i>${dot(s, x(d.p50))}`,
+  });
+
+  // Fig. 3: verbalized to readout, per local model and task.
+  (function dumbbell(el) {
+    const x = lin(-100, 100);
+    const models = DATA.models.map(m => ({ name: m.name, r: m.readout, v: m.verbalized }));
+    const delta = v => {
+      const d = Math.round(v * 10) / 10;
+      const cls = d > 0 ? "up" : d < 0 ? "down" : "";
+      const icon = d > 0 ? "▲" : d < 0 ? "▼" : "";
+      return `<span class="dl ${cls}"><span class="ic" aria-hidden="true">${icon}</span>${signed(d)}</span>`;
+    };
+    const HEADS = ["Score change", "Accuracy change", "Valid, verbalized"];
+    const values = (a, b) => [delta(b.ds - a.ds), delta(b.acc - a.acc), pct(a.valid)];
+
+    function grid(narrow) {
+      const template = narrow
+        ? "minmax(6rem, 8rem) 10px minmax(0, 1fr)"
+        : "minmax(7rem, 9rem) 12px minmax(0, 1fr) 16px 5.5rem 6rem 6rem";
+      const rows = ["auto"], back = [], front = [];
+      front.push(`<div class="fx-head" style="grid-row:1;grid-column:3"><span class="fx-task">Decision Score</span><span class="fx-type"><i class="mk hollow"></i> verbalized → <i class="mk loc"></i> readout</span></div>`);
+      if (!narrow) HEADS.forEach((h, i) => front.push(`<div class="fx-head num" style="grid-row:1;grid-column:${5 + i}"><span class="fx-type">${h}</span></div>`));
+      let r = 2;
+      const first = r;
+      models.forEach(m => {
+        rows.push("42px");
+        front.push(`<div class="fx-rule" style="grid-row:${r};grid-column:1 / -1"></div>`);
+        front.push(`<div class="fx-group model" style="grid-row:${r};grid-column:1 / 3">${m.name}</div>`);
+        r++;
+        TASKS.forEach(t => {
+          rows.push("30px");
+          const a = R[t.id][m.v], b = R[t.id][m.r];
+          const lo = Math.min(a.ds, b.ds), hi = Math.max(a.ds, b.ds);
+          front.push(`<div class="fx-label" style="grid-row:${r};grid-column:1 / 3"><span>${t.name}</span></div>`);
+          front.push(`<div class="fx-plot" style="grid-row:${r};grid-column:3"><i class="cn" style="left:${css(x(lo))}%;width:${css(x(hi) - x(lo))}%"></i>${dot(SYSTEMS[m.v], x(a.ds))}${dot(SYSTEMS[m.r], x(b.ds))}</div>`);
+          if (!narrow) values(a, b).forEach((v, i) => front.push(`<div class="fx-num${i === 2 && a.valid < 90 ? " flag" : ""}" style="grid-row:${r};grid-column:${5 + i}">${v}</div>`));
+          r++;
+        });
+      });
+      back.push(`<div class="fx-layer" style="grid-row:${first} / ${r};grid-column:3"><i class="wash" style="left:0;width:50%"></i><i class="gl" style="left:0"></i><i class="gl" style="left:25%"></i><i class="gl" style="left:75%"></i><i class="gl" style="left:100%"></i><i class="zero" style="left:50%"></i></div>`);
+      rows.push("auto");
+      front.push(`<div class="fx-axis-title" style="grid-row:${r};grid-column:1 / 3">Decision Score</div>`);
+      front.push(`<div class="fx-axis" style="grid-row:${r};grid-column:3">${axis(DS_TICKS, x)}</div>`);
+      return `<div class="fx${narrow ? " is-narrow" : ""}" style="grid-template-columns:${template};grid-template-rows:${rows.join(" ")}">${back.join("")}${front.join("")}</div>`;
+    }
+
+    // The stacked layout moves the numbers into a table of their own below the plot.
+    function changes() {
+      const out = [`<span class="h">Task</span>${HEADS.map(h => `<span class="h n">${h}</span>`).join("")}`];
+      models.forEach(m => {
+        out.push(`<span class="g">${m.name}</span>`);
+        TASKS.forEach(t => {
+          const a = R[t.id][m.v], b = R[t.id][m.r];
+          out.push(`<span class="t">${t.name}</span>${values(a, b).map((v, i) => `<span class="n${i === 2 && a.valid < 90 ? " flag" : ""}">${v}</span>`).join("")}`);
+        });
+      });
+      return `<div class="dn">${out.join("")}</div>`;
+    }
+
+    el.innerHTML = `<div class="rc"><div class="rc-wide">${grid(false)}</div><div class="rc-narrow">${grid(true)}${changes()}</div></div>`;
+  })(document.getElementById("chart-readout"));
+
+  // Fig. 5: two metrics side by side for the systems the findings rules picked.
+  // Each bar cell keeps 46px free at its right end so every value label fits at any width.
+  const extent = (values, step) => {
+    const d0 = Math.min(0, Math.floor(Math.min(...values) / step) * step);
+    const d1 = Math.max(0, Math.ceil(Math.max(...values) / step) * step);
+    return d1 > d0 ? [d0, d1] : [d0, d0 + step];
+  };
+  function pairBars(el, cfg) {
+    const room = f => `calc((100% - 46px) * ${f.toFixed(4)})`;
+    const rowsOf = cfg.ids.map(id => R[cfg.task][id]);
+    const [ma, mb] = [cfg.a, cfg.b].map(m => ({ ...m, domain: extent(rowsOf.map(d => d[m.key]), m.step) }));
+    const cell = (v, m, s) => {
+      const f = u => (u - m.domain[0]) / (m.domain[1] - m.domain[0]);
+      const fz = f(0), fe = f(v);
+      let h = `<i class="pb-z" style="left:${room(fz)}"></i>`;
+      if (v !== 0) h += `<i class="bar ${v > 0 ? "pos" : "neg"} ${s.kind}" style="left:${room(Math.min(fz, fe))};width:${room(Math.abs(fe - fz))}"></i>`;
+      return h + `<span class="val" style="left:calc(${room(Math.max(fz, fe))} + 6px)">${m.fmt(v)}</span>`;
+    };
+    const rows = [`<div class="pb-row pb-top"><span class="pb-l"></span><span class="pb-head">${ma.title}</span><span class="pb-head">${mb.title}</span></div>`];
+    cfg.ids.forEach(id => {
+      const s = SYSTEMS[id], d = R[cfg.task][id];
+      rows.push(`<div class="pb-row"><span class="pb-l">${glyph(s)}<span>${s.name}</span>${s.kind === "loc" ? `<span class="meth">${s.method}</span>` : ""}</span><span class="pb-c">${cell(d[ma.key], ma, s)}</span><span class="pb-c">${cell(d[mb.key], mb, s)}</span></div>`);
+    });
+    el.innerHTML = `<div class="pb">${rows.join("")}</div>`;
+  }
+
+  pairBars(document.getElementById("chart-accuracy"), {
+    task: DATA.examples.accuracy.task,
+    ids: DATA.examples.accuracy.ids,
+    a: { title: "Accuracy", key: "acc", step: 10, fmt: pct },
+    b: { title: "Decision Score", key: "ds", step: 10, fmt: f1 },
+  });
+  pairBars(document.getElementById("chart-calibration"), {
+    task: DATA.examples.calibration.task,
+    ids: DATA.examples.calibration.ids,
+    a: { title: "ECE · lower is better", key: "ece", step: 5, fmt: f1 },
+    b: { title: "Decision Score", key: "ds", step: 10, fmt: f1 },
+  });
+
+  // Fig. 1: Decision Score against median time, one panel per task, labels placed where they fit.
+  (function speedScatter(el) {
+    const ids = ["jev", ...REFERENCE, ...LOCAL];
+    const xDomain = logDomain(timesOf(ids, ["p50"]));
+    const xs = logScale(...xDomain);
+    const scores = TASKS.flatMap(t => ids.map(id => R[t.id][id].ds));
+    const y0 = Math.min(-80, Math.floor(Math.min(...scores) / 10) * 10 - 10);
+    const y1 = Math.max(90, Math.ceil(Math.max(...scores) / 10) * 10 + 10);
+    const ys = v => ((y1 - v) / (y1 - y0)) * 100;
+    const yTicks = [];
+    for (let v = Math.ceil(y0 / 50) * 50; v < y1; v += 50) if (v > y0) yTicks.push(v);
+    const points = {};
+    el.innerHTML = TASKS.map(t => {
+      const order = ["jev", ...ids.filter(id => id !== "jev").sort((a, b) => R[t.id][b].ds - R[t.id][a].ds)];
+      points[t.id] = order.map(id => {
+        const s = SYSTEMS[id], d = R[t.id][id];
+        return {
+          id,
+          name: s.kind === "loc" ? `${s.name} ${s.method}` : s.name,
+          html: s.kind === "loc" ? `${s.name} <span class="meth">${s.method}</span>` : s.name,
+          fx: xs(d.p50),
+          fy: ys(d.ds),
+        };
+      });
+      const dots = order.map(id => dot(SYSTEMS[id], xs(R[t.id][id].p50)).replace("style=\"", `style="top:${css(ys(R[t.id][id].ds))}%;`)).join("");
+      return `<div class="sc" data-task="${t.id}">
+        <div class="sc-title"><span class="fx-task">${t.name}</span><span class="fx-type">${t.type}</span></div>
+        <div class="sc-grid">
+          <div class="sc-yt">Decision Score ↑</div>
+          <div class="sc-ylab">${yTicks.map(v => `<span style="top:${css(ys(v))}%">${f1(v).replace(".0", "")}</span>`).join("")}</div>
+          <div class="sc-plot">
+            ${dots}
+            <div class="sc-labels"></div>
+          </div>
+          <div class="sc-xlab">${logTicks(xDomain, true).map(tk => `<span style="left:${css(xs(tk.v))}%">${tk.label}</span>`).join("")}</div>
+          <div class="sc-xt"><span>← faster</span><span>Median time per decision, log scale</span><span>slower →</span></div>
+        </div>
+        <p class="sc-miss" hidden></p>
+      </div>`;
+    }).join("");
+
+    const overlaps = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+    function place(sc) {
+      const plot = sc.querySelector(".sc-plot");
+      const layer = plot.querySelector(".sc-labels");
+      const W = plot.clientWidth, H = plot.clientHeight;
+      layer.textContent = "";
+      const pts = points[sc.dataset.task].map(p => ({ ...p, px: (p.fx / 100) * W, py: (p.fy / 100) * H }));
+      const taken = pts.map(p => ({ x0: p.px - 7, y0: p.py - 7, x1: p.px + 7, y1: p.py + 7 }));
+      const missing = [];
+      pts.forEach(p => {
+        const lab = document.createElement("span");
+        lab.className = "sc-lab" + (p.id === "jev" ? " is-jev" : "");
+        lab.innerHTML = p.html;
+        layer.appendChild(lab);
+        const w = lab.offsetWidth, h = lab.offsetHeight;
+        let spot = null;
+        for (const d of [9, 18, 30, 44]) {
+          const k = d * 0.7;
+          spot = [
+            [p.px + d, p.py - h / 2], [p.px - d - w, p.py - h / 2],
+            [p.px - w / 2, p.py - d - h], [p.px - w / 2, p.py + d],
+            [p.px + k, p.py - k - h], [p.px + k, p.py + k],
+            [p.px - k - w, p.py - k - h], [p.px - k - w, p.py + k],
+          ].find(([x, y]) => {
+            const box = { x0: x - 2, y0: y - 1, x1: x + w + 2, y1: y + h + 1 };
+            return box.x0 >= 0 && box.y0 >= 0 && box.x1 <= W && box.y1 <= H && !taken.some(o => overlaps(box, o));
+          });
+          if (spot) break;
+        }
+        if (!spot) {
+          lab.remove();
+          missing.push(p.name);
+          return;
+        }
+        lab.style.left = `${spot[0]}px`;
+        lab.style.top = `${spot[1]}px`;
+        taken.push({ x0: spot[0], y0: spot[1], x1: spot[0] + w, y1: spot[1] + h });
+        const cx = Math.min(Math.max(p.px, spot[0]), spot[0] + w), cy = Math.min(Math.max(p.py, spot[1]), spot[1] + h);
+        const len = Math.hypot(cx - p.px, cy - p.py);
+        if (len > 20) {
+          const angle = Math.atan2(cy - p.py, cx - p.px);
+          const lead = document.createElement("i");
+          lead.className = "sc-lead";
+          lead.style.left = `${p.px + Math.cos(angle) * 7}px`;
+          lead.style.top = `${p.py + Math.sin(angle) * 7}px`;
+          lead.style.width = `${len - 9}px`;
+          lead.style.transform = `rotate(${angle}rad)`;
+          layer.appendChild(lead);
+        }
+      });
+      const note = sc.querySelector(".sc-miss");
+      note.hidden = missing.length === 0;
+      note.textContent = missing.length ? `Not labeled at this width: ${missing.join(", ")}.` : "";
+    }
+
+    const panels = [...el.querySelectorAll(".sc")];
+    const observer = new ResizeObserver(entries => entries.forEach(e => place(e.target.closest(".sc"))));
+    panels.forEach(sc => observer.observe(sc.querySelector(".sc-plot")));
+    document.fonts.ready.then(() => panels.forEach(place));
+  })(document.getElementById("chart-speed-score"));
+
+  // Full tables.
+  const dash = "—";
+  const num = (label, value, cls = "") => `<td class="num${cls}" data-label="${label}">${value}</td>`;
+  document.getElementById("tables").innerHTML = TASKS.map(t => {
+    const body = DATA.table[t.id].map(id => {
+      const s = SYSTEMS[id], d = R[t.id][id];
+      const cls = id === "jev" ? "is-jev" : s.kind === "prior" ? "is-prior" : "";
+      return `<tr class="${cls}">
+        <td class="sys"><span class="sysin">${glyph(s)}<span>${s.name}</span>${s.kind === "loc" ? `<span class="tag">local</span>` : ""}</span></td>
+        <td data-label="Probabilities">${s.method}</td>
+        ${num("Decision Score [95% CI]", `<b>${f1(d.ds)}</b> <span class="ci">[${f1(d.lo)}, ${f1(d.hi)}]</span>`, " dsc")}
+        ${num("Accuracy", pct(d.acc))}
+        ${num("ECE", d.ece === null ? dash : f1(d.ece))}
+        ${num("Valid", pct(d.valid))}
+        ${num("p50 ms", d.p50 === null ? dash : int(d.p50))}
+        ${num("p95 ms", d.p95 === null ? dash : int(d.p95))}
+        ${num("Decisions/s", d.dps === null ? dash : d.dps.toFixed(2))}
+      </tr>`;
+    }).join("");
+    return `<div class="tbl">
+      <h3>${t.name}<span>${t.type}</span></h3>
+      <table>
+        <thead><tr><th>System</th><th>Probabilities</th><th class="num">Decision Score [95% CI]</th><th class="num">Accuracy</th><th class="num">ECE</th><th class="num">Valid</th><th class="num">p50 ms</th><th class="num">p95 ms</th><th class="num">Decisions/s</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>`;
+  }).join("");
+})();
+</script>
+</body>
+</html>

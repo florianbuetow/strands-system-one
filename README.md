@@ -45,7 +45,7 @@ Strands agents make three small local LLMs, Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 
    You only need the models you call. To load one from the command line: `lms load qwen3.5-4b-mlx`.
 3. `just init` has been run, so `llm-system-one` is installed in the project's environment. Run your scripts with `uv run`.
 
-The provider URL, model names and every setting are in `config/llm-system-one.toml`. No value has a default; a missing or unknown key stops the program. To use another OpenAI-compatible server, change `[provider]` and add a `[[models]]` entry.
+The provider URL, model names and every setting are in `config/llm-system-one.toml`. No value has a default; a missing or unknown key stops the program. To use another OpenAI-compatible server, change `[provider]` and add a `[[models]]` entry. Each `[[models]]` entry also names its `build` and the `machine` that serves it: the HTML report shows both and compares local timings only between models on the same machine. The `[report]` section holds the thresholds of the rules that write the HTML report's text.
 
 ### Calling it like Jev
 
@@ -201,9 +201,11 @@ These are not real System One models. All four are ordinary text generators that
 ```bash
 just run         # answer examples/account-support.json with every model and both methods
 just example     # run examples/jev_style.py: the three question types and confidence-gated routing
-just benchmark   # run the full suite on every model, then print the results tables
-just report      # print the results tables and write reports/benchmark/report.md
+just benchmark   # run the full suite on every model, then print the results tables and write the reports
+just report      # print the results tables and write reports/benchmark/report.md and report.html
 ```
+
+`reports/benchmark/report.html` is a single page with charts and findings, generated from the same runs as `report.md`. Its charts and text are computed from the results: add a `[[models]]` entry, run `just benchmark`, and the page includes the new model. A local model appears once both of its methods have finished every task; unfinished runs are listed at the top of the page.
 
 `just benchmark` runs all 3 tasks × 300 items × 5 repeats for each model and method (36,000 decisions). It shows a progress bar per run. It also prints a status line every 30 seconds (`status_interval_seconds` in the config) with accuracy, valid-answer rate, ms per decision, decisions per second, and the time left for the current run and for the whole benchmark. Every decision is appended to `data/output/runs/<model>-<method>__<task>__0.1.0.jsonl` as soon as it is made, so an interrupted benchmark resumes where it stopped. Delete a run file to rerun it.
 
@@ -231,7 +233,7 @@ Differences from the published runs:
 
 ## Results
 
-Full suite, 300 items × 5 repeats per task. Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B ran on 2026-09-23/24 as MLX 8-bit builds in LM Studio on an Apple Silicon Mac, one request at a time (a few minutes of the run overlapped with other work on the machine). GLM 4.7 Flash ran on 2026-09-26 as a GGUF Q4_K_M build on a second machine, reached through LM Studio's LM Link, one request at a time; its latency is not comparable with the other rows. Jev's rows are its published runs, rescored with this project's code. The full report, including the six published LLMs, is in [`reports/benchmark/report.md`](reports/benchmark/report.md).
+Full suite, 300 items × 5 repeats per task. Qwen3 0.6B, MiniCPM5 2B and Qwen3.5 4B ran on 2026-09-23/24 as MLX 8-bit builds in LM Studio on an Apple Silicon Mac, one request at a time (a few minutes of the run overlapped with other work on the machine). GLM 4.7 Flash ran on 2026-09-26 as a GGUF Q4_K_M build on a second machine, reached through LM Studio's LM Link, one request at a time; its latency is not comparable with the other rows. Jev's rows are its published runs, rescored with this project's code. The full report, including the six published LLMs, is in [`reports/benchmark/report.md`](reports/benchmark/report.md), and as a page with charts in [`reports/benchmark/report.html`](reports/benchmark/report.html).
 
 Decision Score: 100 = perfect, 0 = no better than always answering with the label base rates, below 0 = worse than that. ECE is the calibration gap in points (lower is better).
 
@@ -298,7 +300,7 @@ Everything under `data/` is downloaded or generated and is not in git. The bench
 | HelpSteer2 item text | `data/input/sources/` (`just fetch`) | No | CC BY 4.0 (NVIDIA) | Credit NVIDIA |
 | PubMedQA item text | `data/input/sources/` (`just fetch`) | No | MIT | Keep the MIT copyright notice |
 | Local run logs (every decision) | `data/output/runs/` (`just benchmark`) | No | This project's | None; they hold model answers and timings, no item text |
-| Benchmark results | `reports/benchmark/report.md` (`just report`) | Yes | This project's, with the jevals attribution | Keep the attribution lines |
+| Benchmark results | `reports/benchmark/report.md` and `report.html` (`just report`) | Yes | This project's, with the jevals attribution | Keep the attribution lines |
 | Model weights | LM Studio | No | Each model's own licence | Downloaded through LM Studio |
 
 The PubMedQA contexts are PubMed abstracts, whose copyright normally stays with their publishers, even though the dataset is released under MIT.

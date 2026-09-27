@@ -17,6 +17,7 @@ from llm_system_one.config import Config, Method, ModelConfig, load_config
 from llm_system_one.jevals import download_jevals, load_task
 from llm_system_one.questions import Option, Question
 from llm_system_one.report import render, score_task, write_markdown
+from llm_system_one.report_html import write_html
 from llm_system_one.sources import prepare_items
 
 
@@ -42,9 +43,11 @@ def _fetch(config: Config, console: Console) -> None:
 def _report(config: Config, console: Console) -> None:
     results = [score_task(config, task_id) for task_id in config.benchmark.tasks]
     render(results, console)
-    path = config.benchmark.report_dir / "report.md"
-    write_markdown(config, results, path)
-    console.print(f"Report written to {path}")
+    markdown = config.benchmark.report_dir / "report.md"
+    write_markdown(config, results, markdown)
+    page = config.benchmark.report_dir / "report.html"
+    write_html(config, results, page)
+    console.print(f"Report written to {markdown} and {page}")
 
 
 def _question(path: Path) -> Question:

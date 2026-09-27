@@ -10,31 +10,41 @@ timeout_seconds = 300
 # The three models from openjev.com, under the names LM Studio gives them.
 # The prefill opens the assistant turn with an empty think block, which switches
 # step-by-step reasoning off for all three (their API reasoning switches have no effect).
+# build and machine say how each model was served; the report prints them and only compares
+# local timings between models that ran on the same machine.
 [[models]]
 key = "qwen3-0.6b"
 model_id = "qwen3-0.6b"
 display_name = "Qwen3 0.6B"
 assistant_prefill = "<think>\n\n</think>\n\n"
+build = "MLX 8-bit"
+machine = "Apple Silicon Mac"
 
 [[models]]
 key = "minicpm5-2b"
 model_id = "minicpm5-2b"
 display_name = "MiniCPM5 2B"
 assistant_prefill = "<think>\n\n</think>\n\n"
+build = "MLX 8-bit"
+machine = "Apple Silicon Mac"
 
 [[models]]
 key = "qwen3.5-4b"
 model_id = "qwen3.5-4b-mlx"
 display_name = "Qwen3.5 4B"
 assistant_prefill = "<think>\n\n</think>\n\n"
+build = "MLX 8-bit"
+machine = "Apple Silicon Mac"
 
 # A larger model for comparison: GLM 4.7 Flash (30B, GGUF Q4_K_M). The same empty think
-# block switches its reasoning off.
+# block switches its reasoning off. It ran on a second machine, reached through LM Studio's LM Link.
 [[models]]
 key = "glm-4.7-flash"
 model_id = "zai-org/glm-4.7-flash"
 display_name = "GLM 4.7 Flash"
 assistant_prefill = "<think>\n\n</think>\n\n"
+build = "GGUF Q4_K_M"
+machine = "second machine via LM Link"
 
 # System One emulation: read option probabilities from next-token logprobs, no text generated.
 [readout]
@@ -65,6 +75,12 @@ report_dir = "reports/benchmark" # committed to git; data/ is not
 bootstrap_resamples = 2000
 bootstrap_seed = 20260918
 status_interval_seconds = 30 # how often the benchmark prints a status line with ETA
+
+# Thresholds of the rules that write reports/benchmark/report.html.
+[report]
+sparse_readout_share = 0.5 # a readout with probability on fewer than this share of a task's answers is flagged
+valid_rate_floor = 90.0    # verbalized runs with fewer valid answers than this percentage get a note
+slow_readout_factor = 2.0  # readout medians at least this many times the verbalized median get a note
 
 # Where each task's item text comes from: the file inside the pinned Hugging Face dataset revision,
 # and the field whose value must match the jevals label (as an option index or an option name).
